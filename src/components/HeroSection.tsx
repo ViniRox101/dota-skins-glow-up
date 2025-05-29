@@ -57,7 +57,7 @@ const HeroSection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="bg-neon-green text-game-dark px-8 py-4 rounded-lg font-bold text-lg hover:bg-neon-green/90 transition-all duration-300 transform hover:scale-105 animate-glow-pulse">
+              <button className="bg-neon-green text-game-dark px-8 py-4 rounded-lg font-bold text-lg hover:bg-neon-green/90 transition-all duration-300 transform hover:scale-105 shadow-lg">
                 Explorar Skins
               </button>
               <button className="border-2 border-neon-green text-neon-green px-8 py-4 rounded-lg font-bold text-lg hover:bg-neon-green hover:text-game-dark transition-all duration-300">

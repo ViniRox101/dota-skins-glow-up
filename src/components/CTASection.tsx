@@ -69,7 +69,7 @@ const CTASection = () => {
 
           {/* Main CTA button */}
           <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <button className="group relative px-12 py-6 bg-gradient-to-r from-neon-green to-cyber-blue text-game-dark font-bold text-xl rounded-xl hover:from-neon-green/90 hover:to-cyber-blue/90 transition-all duration-300 transform hover:scale-105 animate-glow-pulse">
+            <button className="group relative px-12 py-6 bg-gradient-to-r from-neon-green to-cyber-blue text-game-dark font-bold text-xl rounded-xl hover:from-neon-green/90 hover:to-cyber-blue/90 transition-all duration-300 transform hover:scale-105 shadow-2xl">
               <span className="relative z-10">Começar agora</span>
               
               {/* Hover effect */}

@@ -34,7 +34,7 @@ const Header = () => {
           </span>
         </div>
 
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="flex items-center space-x-8">
           <button 
             onClick={() => scrollToSection('home')}
             className="text-white hover:text-neon-green transition-colors duration-300"
@@ -69,10 +69,6 @@ const Header = () => {
             Login
           </span>
         </nav>
-
-        <button className="bg-neon-green text-game-dark px-6 py-2 rounded-lg font-semibold hover:bg-neon-green/90 transition-all duration-300 animate-glow-pulse">
-          Entrar agora
-        </button>
       </div>
     </header>
   );
