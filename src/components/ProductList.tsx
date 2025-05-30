@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Product {
   id: string;
@@ -16,18 +17,9 @@ interface Product {
   created_at: string;
 }
 
-// ... existing code ...
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// ... existing code ...
-
 interface ProductListProps {
-  limit?: number; // Opcional: limitar o número de produtos exibidos
-  isFeaturedOnly?: boolean; // Opcional: buscar apenas produtos destacados
+  limit?: number;
+  isFeaturedOnly?: boolean;
   selectedCategories?: string[];
   selectedTags?: string[];
   priceRange?: [number, number];
@@ -42,7 +34,13 @@ const ProductList: React.FC<ProductListProps> = ({ limit, isFeaturedOnly, select
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        let query = supabase.from('items').select('*, categorias(nome), tags_coloridas(nome)');
+        console.log('Fetching products with filters:', { selectedCategories, selectedTags, priceRange });
+        
+        let query = supabase.from('items').select(`
+          *,
+          categorias!items_categoria_id_fkey(nome),
+          tags_coloridas!items_tag_id_fkey(nome)
+        `);
 
         if (isFeaturedOnly) {
           query = query.eq('destaque', true);
@@ -66,12 +64,16 @@ const ProductList: React.FC<ProductListProps> = ({ limit, isFeaturedOnly, select
 
         const { data, error } = await query;
 
+        console.log('ProductList - Supabase data:', data);
+        console.log('ProductList - Supabase error:', error);
+
         if (error) {
           throw error;
         }
 
         setProducts(data || []);
       } catch (err: any) {
+        console.error('Error fetching products:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -108,7 +110,6 @@ const ProductList: React.FC<ProductListProps> = ({ limit, isFeaturedOnly, select
                 DESTAQUE
               </span>
             )}
-            {/* Lógica para 'NOVA' - exemplo: se criado nos últimos 7 dias */}
             {new Date(product.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
               <span className="bg-neon-green text-game-dark px-2 py-1 rounded text-xs font-bold">
                 NOVA
@@ -128,8 +129,8 @@ const ProductList: React.FC<ProductListProps> = ({ limit, isFeaturedOnly, select
           <div className="p-6">
             <div className="mb-2">
               <span className="text-xs font-bold px-2 py-1 rounded bg-gradient-to-r from-red-500 to-orange-500 text-white">
-                  {product.categorias ? product.categorias.nome : 'N/A'}
-                </span>
+                {product.categorias ? product.categorias.nome : 'N/A'}
+              </span>
             </div>
 
             {product.tags_coloridas && (

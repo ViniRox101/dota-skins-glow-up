@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Product {
   id: string;
@@ -16,11 +16,6 @@ interface Product {
   created_at: string;
 }
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 const FeaturedProductCarousel: React.FC = () => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -31,10 +26,19 @@ const FeaturedProductCarousel: React.FC = () => {
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
+        console.log('Fetching featured products...');
+        
         const { data, error } = await supabase
           .from('items')
-          .select('*, categorias(nome), tags_coloridas(nome)')
+          .select(`
+            *,
+            categorias!items_categoria_id_fkey(nome),
+            tags_coloridas!items_tag_id_fkey(nome)
+          `)
           .eq('destaque', true);
+
+        console.log('FeaturedCarousel - Supabase data:', data);
+        console.log('FeaturedCarousel - Supabase error:', error);
 
         if (error) {
           throw error;
@@ -42,6 +46,7 @@ const FeaturedProductCarousel: React.FC = () => {
 
         setFeaturedProducts(data || []);
       } catch (err: any) {
+        console.error('Error fetching featured products:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -84,7 +89,7 @@ const FeaturedProductCarousel: React.FC = () => {
   }
 
   if (featuredProducts.length === 0) {
-    return null; // Não renderiza a seção se não houver produtos em destaque
+    return null;
   }
 
   return (
