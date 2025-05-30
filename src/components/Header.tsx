@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,6 +21,9 @@ const Header = () => {
     }
   };
 
+  const location = useLocation();
+  const isSkinsPage = location.pathname === '/skins';
+
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       isScrolled ? 'bg-game-dark/95 backdrop-blur-md border-b border-neon-green/20' : 'bg-transparent'
@@ -35,39 +39,35 @@ const Header = () => {
         </div>
 
         <nav className="flex items-center space-x-8">
-          <button 
-            onClick={() => scrollToSection('home')}
-            className="text-white hover:text-neon-green transition-colors duration-300"
-          >
+          <Link to="/" className="text-white hover:text-neon-green transition-colors duration-300">
             Home
-          </button>
-          <button 
-            onClick={() => scrollToSection('skins')}
+          </Link>
+          <Link
+            to="/#featured-products-carousel"
+            onClick={() => scrollToSection('featured-products-carousel')}
             className="text-white hover:text-neon-green transition-colors duration-300"
           >
+            Destaque
+          </Link>
+          <Link to="/skins" className="text-white hover:text-neon-green transition-colors duration-300">
             Skins
-          </button>
-          <button 
-            onClick={() => scrollToSection('packs')}
-            className="text-white hover:text-neon-green transition-colors duration-300"
-          >
-            Packs Exclusivos
-          </button>
-          <button 
-            onClick={() => scrollToSection('sobre')}
+          </Link>
+          {/* Packs Exclusivos removido conforme solicitado */}
+          <Link 
+            to="/#sobre"
             className="text-white hover:text-neon-green transition-colors duration-300"
           >
             Sobre
-          </button>
-          <button 
-            onClick={() => scrollToSection('faq')}
+          </Link>
+          <Link 
+            to="/#faq"
             className="text-white hover:text-neon-green transition-colors duration-300"
           >
             FAQ
-          </button>
-          <span className="text-white hover:text-neon-green transition-colors duration-300 cursor-pointer">
+          </Link>
+          <Link to="/login" className="text-white hover:text-neon-green transition-colors duration-300">
             Login
-          </span>
+          </Link>
         </nav>
       </div>
     </header>
