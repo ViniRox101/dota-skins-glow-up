@@ -1,8 +1,10 @@
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HeroSection = () => {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; delay: number }>>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const generateParticles = () => {
@@ -20,6 +22,10 @@ const HeroSection = () => {
 
     generateParticles();
   }, []);
+
+  const handleClick = () => {
+    navigate('/skins');
+  };
 
   return (
     <section id="home" className="min-h-screen bg-game-dark relative overflow-hidden flex items-center">
@@ -57,7 +63,9 @@ const HeroSection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="bg-neon-green text-game-dark px-8 py-4 rounded-lg font-bold text-lg hover:bg-neon-green/90 transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <button 
+                onClick={handleClick}
+                className="bg-neon-green text-game-dark px-8 py-4 rounded-lg font-bold text-lg hover:bg-neon-green/90 transition-all duration-300 transform hover:scale-105 shadow-lg">
                 Explorar Skins
               </button>
               <button className="border-2 border-neon-green text-neon-green px-8 py-4 rounded-lg font-bold text-lg hover:bg-neon-green hover:text-game-dark transition-all duration-300">

@@ -64,7 +64,7 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				// Custom gaming colors
-				'neon-green': '#CEFF00',
+				'neon-green': '#00ffe8',
 				'cyber-purple': '#6B46C1',
 				'cyber-blue': '#0EA5E9',
 				'game-dark': '#0D0D0D',
@@ -122,7 +122,7 @@ export default {
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-				'cyber-gradient': 'linear-gradient(135deg, #6B46C1, #0EA5E9, #CEFF00)',
+				'cyber-gradient': 'linear-gradient(135deg, #6B46C1, #0EA5E9, #00ffe8)',
 			}
 		}
 	},

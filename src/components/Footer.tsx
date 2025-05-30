@@ -10,7 +10,7 @@ const Footer = () => {
   const footerLinks = [
     {
       title: 'Produto',
-      links: ['Skins', 'Marketplace', 'Packs Exclusivos', 'Ofertas']
+      links: ['Skins', 'Ofertas']
     },
     {
       title: 'Suporte',
@@ -67,7 +67,7 @@ const Footer = () => {
                 {section.links.map((link) => (
                   <li key={link}>
                     <a
-                      href="#"
+                      href={link === 'Skins' ? '/skins' : link === 'FAQ' ? '/faq' : link === 'Sobre' ? '/sobre' : '#'}
                       className="text-gray-400 hover:text-neon-green transition-colors duration-300"
                     >
                       {link}
