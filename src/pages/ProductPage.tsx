@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -30,12 +29,14 @@ const ProductPage = () => {
     window.scrollTo(0, 0);
     const fetchProduct = async () => {
       try {
+        console.log('Searching for product:', productName);
+        
         const { data, error } = await supabase
           .from('items')
           .select(`
             *,
-            categorias(nome),
-            tags_coloridas(nome)
+            categorias!items_categoria_id_fkey(nome),
+            tags_coloridas!items_tag_id_fkey(nome)
           `)
           .ilike('nome', productName)
           .single();
@@ -55,6 +56,7 @@ const ProductPage = () => {
           setError('Produto não encontrado.');
         }
       } catch (err: any) {
+        console.error('Error fetching product:', err);
         setError(err.message);
       } finally {
         setLoading(false);
