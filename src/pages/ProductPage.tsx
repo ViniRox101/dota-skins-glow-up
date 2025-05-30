@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom'; // Importar useParams
+import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Product {
   id: string;
@@ -14,18 +15,13 @@ interface Product {
   destaque: boolean;
   imagens: string[];
   created_at: string;
-  categorias: { nome: string };
-  tags_coloridas: { nome: string };
+  categorias: { nome: string } | null;
+  tags_coloridas: { nome: string } | null;
 }
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 const ProductPage = () => {
-  const { productName: urlParam } = useParams<{ productName: string }>(); // Obter o parâmetro da URL (nome-do-produto)
-  const productName = urlParam ? decodeURIComponent(urlParam.replace(/-/g, ' ')) : undefined; // Extrair o nome do produto da URL, substituir hífens por espaços e decodificar
+  const { productName: urlParam } = useParams<{ productName: string }>();
+  const productName = urlParam ? decodeURIComponent(urlParam.replace(/-/g, ' ')) : undefined;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,12 +29,14 @@ const ProductPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchProduct = async () => {
-
       try {
-
         const { data, error } = await supabase
           .from('items')
-          .select('*, categorias!items_categoria_id_fkey(nome), tags_coloridas!items_tag_id_fkey(nome)')
+          .select(`
+            *,
+            categorias(nome),
+            tags_coloridas(nome)
+          `)
           .ilike('nome', productName)
           .single();
 
@@ -46,7 +44,7 @@ const ProductPage = () => {
         console.log('Supabase error:', error);
 
         if (error) {
-          if (error.code === 'PGRST116') { // Código para "no rows found"
+          if (error.code === 'PGRST116') {
             setError('Produto não encontrado.');
           } else {
             throw error;
@@ -128,7 +126,6 @@ const ProductPage = () => {
     );
   }
 
-  // Se o produto for encontrado, exibir os detalhes
   return (
     <div className="min-h-screen bg-gradient-to-b from-game-dark to-gray-900 text-white relative overflow-hidden">
       {/* Particles Background */}
@@ -174,31 +171,12 @@ const ProductPage = () => {
             <div className="bg-gray-800/50 p-6 rounded-lg">
               <h2 className="text-2xl font-bold mb-4">Detalhes</h2>
               <ul className="list-disc list-inside text-gray-300">
-                <li>Categoria: {product.categorias.nome}</li>
-                <li>Tag: {product.tags_coloridas.nome}</li>
+                <li>Categoria: {product.categorias?.nome || 'Não informado'}</li>
+                <li>Tag: {product.tags_coloridas?.nome || 'Não informado'}</li>
               </ul>
             </div>
           </div>
         </div>
-
-        {/* Seção de Produtos Relacionados (Opcional) */}
-        {/* Implementação futura: filtrar produtos relacionados */}
-        {/* <section className="mt-12">
-          <h2 className="text-3xl font-bold text-center mb-8">Produtos Relacionados</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.slice(0, 3).map(relatedProduct => (
-               <div key={relatedProduct.id} className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden hover:border-neon-green/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2 cursor-pointer">
-                <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-500 relative overflow-hidden">
-                  <img src={relatedProduct.imageUrl} alt={relatedProduct.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-white font-bold text-lg mb-2">{relatedProduct.name}</h3>
-                  <span className="text-xl font-bold text-neon-green">${relatedProduct.price.toFixed(2)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section> */}
       </main>
       <Footer />
     </div>
