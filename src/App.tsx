@@ -9,11 +9,16 @@ import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import AddProduct from "./pages/AddProduct";
 import ManageCategories from './pages/ManageCategories';
-import ManageTags from './pages/ManageTags';
+
 import SkinsPage from './pages/SkinsPage';
 import ProductPage from './pages/ProductPage';
 import Dashboard from "./pages/Dashboard";
 import ManageProducts from "./pages/ManageProducts";
+import ManageHeroes from "./pages/ManageHeroes";
+import ManageEquippableParts from "./pages/ManageEquippableParts";
+import ManageRarities from "./pages/ManageRarities";
+import About from "./pages/About";
+import FAQ from "./pages/FAQ";
 
 const queryClient = new QueryClient();
 
@@ -28,14 +33,19 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/skins" element={<SkinsPage />} />
           <Route path="/products/:productName" element={<ProductPage />} />
-          <Route path="/add-product" element={<AddProduct />} />
+
           <Route path="/admin" element={<AdminDashboard />}>
             <Route index element={<Dashboard />} />
             <Route path="add-product" element={<AddProduct />} />
             <Route path="manage-categories" element={<ManageCategories />} />
-            <Route path="manage-tags" element={<ManageTags />} />
+  
+            <Route path="manage-heroes" element={<ManageHeroes />} />
+            <Route path="manage-equippable-parts" element={<ManageEquippableParts />} />
+            <Route path="manage-rarities" element={<ManageRarities />} />
             <Route path="manage-products" element={<ManageProducts />} />
           </Route>
+          <Route path="/about" element={<About />} />
+          <Route path="/faq" element={<FAQ />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

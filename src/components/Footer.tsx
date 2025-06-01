@@ -1,24 +1,22 @@
 
+import { Instagram, Youtube, X, Shirt } from 'lucide-react';
+
 const Footer = () => {
   const socialLinks = [
-    { name: 'Discord', icon: '🎮', href: '#' },
-    { name: 'Twitter', icon: '🐦', href: '#' },
-    { name: 'Telegram', icon: '✈️', href: '#' },
-    { name: 'Instagram', icon: '📸', href: '#' },
+    { name: 'Instagram', icon: <Instagram size={20} />, href: 'https://www.instagram.com/dotaplaybrasil/' },
+    { name: 'Youtube', icon: <Youtube size={20} />, href: 'https://www.youtube.com/@DotaPlayBrasil' },
+    { name: 'X', icon: <X size={20} />, href: 'https://x.com/dotaplaybrasil' },
+    { name: 'Camisetas', icon: <Shirt size={20} />, href: 'https://www.canva.com/design/DAGlw8lmq48/9rbJyK4fi6NV5kOcHC5daw/view?utm_content=DAGlw8lmq48&utm_campaign=share_your_design&utm_medium=link2&utm_source=shareyourdesignpanel' },
   ];
 
   const footerLinks = [
     {
       title: 'Produto',
-      links: ['Skins', 'Ofertas']
+      links: ['Skins']
     },
     {
       title: 'Suporte',
-      links: ['FAQ', 'Contato', 'Guias', 'Status']
-    },
-    {
-      title: 'Legal',
-      links: ['Termos de Uso', 'Privacidade', 'Cookies', 'Segurança']
+      links: ['FAQ', 'Contato']
     }
   ];
 
@@ -44,6 +42,7 @@ const Footer = () => {
             </p>
             
             {/* Social links */}
+            <h4 className="text-white font-semibold text-lg mb-4">Nossas redes sociais</h4>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
                 <a
@@ -67,7 +66,7 @@ const Footer = () => {
                 {section.links.map((link) => (
                   <li key={link}>
                     <a
-                      href={link === 'Skins' ? '/skins' : link === 'FAQ' ? '/faq' : link === 'Sobre' ? '/sobre' : '#'}
+                      href={link === 'Skins' ? '/skins' : link === 'FAQ' ? '/faq' : link === 'Sobre' ? '/sobre' : '#'} // Mantém a lógica de links existentes
                       className="text-gray-400 hover:text-neon-green transition-colors duration-300"
                     >
                       {link}

@@ -59,7 +59,7 @@ items
 
 categorias
 
-tags_coloridas
+raridades
 
 admins
 

@@ -65,10 +65,12 @@ export type Database = {
           mostrar_quando_esgotado: boolean | null
           nome: string
           preco: number
-          tag_id: string | null
+          raridade_id: string | null
           timer_ativo: boolean | null
           timer_fim: string | null
           updated_at: string | null
+          mega_destaque: boolean | null // Adicionado
+          hero_id: string | null // Adicionado
         }
         Insert: {
           categoria_id?: string | null
@@ -83,10 +85,12 @@ export type Database = {
           mostrar_quando_esgotado?: boolean | null
           nome: string
           preco: number
-          tag_id?: string | null
+          raridade_id?: string | null
           timer_ativo?: boolean | null
           timer_fim?: string | null
           updated_at?: string | null
+          mega_destaque?: boolean | null // Adicionado
+          hero_id?: string | null // Adicionado
         }
         Update: {
           categoria_id?: string | null
@@ -101,12 +105,21 @@ export type Database = {
           mostrar_quando_esgotado?: boolean | null
           nome?: string
           preco?: number
-          tag_id?: string | null
+          raridade_id?: string | null
           timer_ativo?: boolean | null
           timer_fim?: string | null
           updated_at?: string | null
+          mega_destaque?: boolean | null // Adicionado
+          hero_id?: string | null // Adicionado
         }
         Relationships: [
+          {
+            foreignKeyName: "items_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "herois"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "items_categoria_id_fkey"
             columns: ["categoria_id"]
@@ -115,15 +128,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "items_tag_id_fkey"
-            columns: ["tag_id"]
+            foreignKeyName: "items_raridade_id_fkey"
+            columns: ["raridade_id"]
             isOneToOne: false
-            referencedRelation: "tags_coloridas"
+            referencedRelation: "raridades"
             referencedColumns: ["id"]
           },
         ]
       }
-      tags_coloridas: {
+      raridades: {
         Row: {
           cor_hex: string
           id: string
@@ -136,6 +149,21 @@ export type Database = {
         }
         Update: {
           cor_hex?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      herois: {
+        Row: {
+          id: string
+          nome: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+        }
+        Update: {
           id?: string
           nome?: string
         }

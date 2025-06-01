@@ -3,19 +3,27 @@ import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
+import { BuyModal } from '@/components/ui/BuyModal'; // Importa o BuyModal
+import { Button } from '@/components/ui/button'; // Importa o Button
 
 interface Product {
   id: string;
   nome: string;
   descricao: string;
   preco: number;
+  desconto_porcentagem: number | null; // Adiciona a porcentagem de desconto
   categoria_id: string;
-  tag_id: string;
+  raridade_id: string;
   destaque: boolean;
   imagens: string[];
   created_at: string;
   categorias: { nome: string } | null;
-  tags_coloridas: { nome: string } | null;
+  raridades: { nome: string } | null;
+  estoque: number; // Adiciona o campo de estoque
+  heroi_id: string | null; // Adiciona o relacionamento com heróis
+  herois: { nome: string } | null;
+  parte_equipavel_id: string | null; // Adiciona o relacionamento com partes equipáveis
+  partes_equipaveis: { nome: string } | null;
 }
 
 const ProductPage = () => {
@@ -35,8 +43,11 @@ const ProductPage = () => {
           .from('items')
           .select(`
             *,
+            desconto_porcentagem,
             categorias!items_categoria_id_fkey(nome),
-            tags_coloridas!items_tag_id_fkey(nome)
+            raridades!items_raridade_id_fkey(nome),
+            herois!items_heroi_id_fkey(nome),
+            partes_equipaveis!items_parte_equipavel_id_fkey(nome)
           `)
           .ilike('nome', productName)
           .single();
@@ -162,11 +173,21 @@ const ProductPage = () => {
             <p className="text-gray-300 text-lg mb-6">
               {product.descricao}
             </p>
-            <div className="flex items-center justify-between mb-6">
-              <span className="text-4xl font-bold text-white">R$ {product.preco ? product.preco.toFixed(2) : '0.00'}</span>
-              <button className="bg-neon-green text-game-dark px-8 py-3 rounded-lg font-bold text-xl hover:bg-neon-green/90 transition-all duration-300 transform hover:scale-105">
-                Comprar Agora
-              </button>
+            <div className="flex items-center justify-between mb-6 space-x-4">
+              {product.desconto_porcentagem !== null && product.desconto_porcentagem > 0 ? (
+                <div className="flex flex-col">
+                  <span className="text-5xl font-bold text-neon-green">R$ {(product.preco * (1 - product.desconto_porcentagem / 100)).toFixed(2)}</span>
+                  <span className="text-xl text-gray-400 line-through">R$ {product.preco.toFixed(2)}</span>
+                </div>
+              ) : (
+                <span className="text-5xl font-bold text-white">R$ {product.preco ? product.preco.toFixed(2) : '0.00'}</span>
+              )}
+
+              <BuyModal whatsappLink="https://wa.link/196mnu">
+                <Button className="bg-neon-green text-game-dark px-8 py-3 rounded-lg font-bold text-xl hover:bg-neon-green/90 transition-all duration-300">
+                  Comprar Agora
+                </Button>
+              </BuyModal>
             </div>
 
             {/* Informações Adicionais */}
@@ -174,7 +195,10 @@ const ProductPage = () => {
               <h2 className="text-2xl font-bold mb-4">Detalhes</h2>
               <ul className="list-disc list-inside text-gray-300">
                 <li>Categoria: {product.categorias?.nome || 'Não informado'}</li>
-                <li>Tag: {product.tags_coloridas?.nome || 'Não informado'}</li>
+                <li>Raridade: {product.raridades?.nome || 'Não informado'}</li>
+                {product.herois && <li>Herói: {product.herois.nome}</li>}
+                {product.partes_equipaveis && <li>Parte Equipável: {product.partes_equipaveis.nome}</li>}
+                <li>Estoque: {product.estoque}</li>
               </ul>
             </div>
           </div>

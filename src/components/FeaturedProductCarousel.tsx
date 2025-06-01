@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { BuyModal } from './ui/BuyModal'; // Importa o BuyModal
+import { Button } from './ui/button'; // Importa o Button
 
 interface Product {
   id: string;
   nome: string;
   descricao: string;
   preco: number;
+  desconto_porcentagem?: number;
   categoria_id: string;
   categorias: { nome: string } | null;
-  tag_id: string;
-  tags_coloridas: { nome: string } | null;
+  raridade_id: string;
+  raridades: { nome: string } | null;
   destaque: boolean;
   imagens: string[];
   created_at: string;
@@ -22,6 +25,23 @@ const FeaturedProductCarousel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(4);
+
+  useEffect(() => {
+    const calculateItemsPerPage = () => {
+      if (window.innerWidth >= 1024) {
+        setItemsPerPage(4);
+      } else if (window.innerWidth >= 640) {
+        setItemsPerPage(2);
+      } else {
+        setItemsPerPage(1);
+      }
+    };
+
+    calculateItemsPerPage();
+    window.addEventListener('resize', calculateItemsPerPage);
+    return () => window.removeEventListener('resize', calculateItemsPerPage);
+  }, []);
 
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
@@ -33,7 +53,8 @@ const FeaturedProductCarousel: React.FC = () => {
           .select(`
             *,
             categorias!items_categoria_id_fkey(nome),
-            tags_coloridas!items_tag_id_fkey(nome)
+            raridades!items_raridade_id_fkey(nome),
+            desconto_porcentagem
           `)
           .eq('destaque', true);
 
@@ -57,27 +78,25 @@ const FeaturedProductCarousel: React.FC = () => {
   }, []);
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % Math.max(1, featuredProducts.length - 3));
+    setCurrentIndex((prev) => (prev + 1) % Math.max(1, featuredProducts.length - itemsPerPage + 1));
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + Math.max(1, featuredProducts.length - 3)) % Math.max(1, featuredProducts.length - 3));
+    setCurrentIndex((prev) => (prev - 1 + Math.max(1, featuredProducts.length - itemsPerPage + 1)) % Math.max(1, featuredProducts.length - itemsPerPage + 1));
   };
 
-  const getRarityColor = (categoryName: string) => {
+  const getRarityColor = (rarityName: string) => {
     const colors: { [key: string]: string } = {
-      'Arcana': 'from-red-500 to-orange-500',
-      'Immortal': 'from-yellow-400 to-orange-500',
-      'Legendary': 'from-purple-500 to-pink-500',
-      'Mythical': 'from-purple-400 to-blue-500',
-      'Divine': 'from-cyan-400 to-blue-500',
-      'Cosmic': 'from-green-400 to-cyan-500',
-      'Manopla': 'from-red-500 to-orange-500',
-      'Capa': 'from-purple-400 to-blue-500',
-      'Espada': 'from-yellow-400 to-orange-500',
-      'Gancho': 'from-green-400 to-cyan-500',
+      'Comum': 'from-gray-400 to-gray-600',
+      'Incomum': 'from-green-500 to-green-700',
+      'Rara': 'from-blue-500 to-blue-700',
+      'Mítica': 'from-purple-500 to-purple-700',
+      'Lendária': 'from-orange-500 to-orange-700',
+      'Antiga': 'from-red-500 to-red-700',
+      'Imortal': 'from-yellow-500 to-yellow-700',
+      'Arcana': 'from-pink-500 to-purple-500',
     };
-    return colors[categoryName] || 'from-gray-400 to-gray-600';
+    return colors[rarityName] || 'from-gray-400 to-gray-600';
   };
 
   if (loading) {
@@ -109,10 +128,10 @@ const FeaturedProductCarousel: React.FC = () => {
           <div className="overflow-hidden">
             <div 
               className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentIndex * (100 / 4)}%)` }}
+              style={{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }}
             >
               {featuredProducts.map((product) => (
-                <div key={product.id} className="w-full sm:w-1/2 lg:w-1/4 flex-shrink-0 px-3">
+                <div key={product.id} className="w-full sm:w-1/2 lg:w-1/4 flex-shrink-0 px-3 mb-6">
                   <div 
                     className="group relative bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden hover:border-neon-green/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2 cursor-pointer"
                     onClick={() => navigate(`/products/${encodeURIComponent(product.nome.toLowerCase().replace(/ /g, '-'))}`)}
@@ -145,14 +164,14 @@ const FeaturedProductCarousel: React.FC = () => {
                     <div className="p-6">
                       <div className="mb-2">
                         <span className={`text-xs font-bold px-2 py-1 rounded bg-gradient-to-r ${getRarityColor(product.categorias?.nome || '')} text-white`}>
-                          {product.categorias ? product.categorias.nome : 'N/A'}
+                          {product.categorias?.nome || 'N/A'}
                         </span>
                       </div>
                       
-                      {product.tags_coloridas && (
+                      {product.raridades && (
                         <div className="mb-2">
-                          <span className="text-xs font-bold px-2 py-1 rounded bg-gradient-to-r from-red-500 to-orange-500 text-white">
-                            {product.tags_coloridas.nome}
+                          <span className="text-xs font-bold px-2 py-1 rounded bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                            {product.raridades?.nome || 'N/A'}
                           </span>
                         </div>
                       )}
@@ -162,12 +181,25 @@ const FeaturedProductCarousel: React.FC = () => {
                       </h3>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold text-neon-green">
-                          R$ {product.preco ? product.preco.toFixed(2) : '0.00'}
-                        </span>
-                        <button className="bg-neon-green text-game-dark px-4 py-2 rounded-lg font-semibold hover:bg-neon-green/90 transition-all duration-300 transform hover:scale-105">
-                          Comprar
-                        </button>
+                        {product.desconto_porcentagem && product.desconto_porcentagem > 0 ? (
+                          <div className="flex flex-col">
+                            <span className="text-xl text-gray-400 line-through">
+                              R$ {product.preco.toFixed(2)}
+                            </span>
+                            <span className="text-2xl font-bold text-neon-green">
+                              R$ {(product.preco * (1 - product.desconto_porcentagem / 100)).toFixed(2)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-2xl font-bold text-neon-green">
+                            R$ {product.preco ? product.preco.toFixed(2) : '0.00'}
+                          </span>
+                        )}
+                        <BuyModal whatsappLink="https://wa.link/196mnu">
+                          <Button className="bg-neon-green text-game-dark px-4 py-2 rounded-lg font-semibold hover:bg-neon-green/90 transition-all duration-300">
+                            Comprar
+                          </Button>
+                        </BuyModal>
                       </div>
                     </div>
 
@@ -183,28 +215,17 @@ const FeaturedProductCarousel: React.FC = () => {
           <button 
             onClick={prevSlide}
             className="absolute left-4 top-1/2 -translate-y-1/2 bg-game-dark/80 text-white p-3 rounded-full hover:bg-neon-green hover:text-game-dark transition-all duration-300 border border-neon-green/30"
+            aria-label="Previous slide"
           >
-            ←
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
           </button>
-          <button 
+          <button
             onClick={nextSlide}
             className="absolute right-4 top-1/2 -translate-y-1/2 bg-game-dark/80 text-white p-3 rounded-full hover:bg-neon-green hover:text-game-dark transition-all duration-300 border border-neon-green/30"
+            aria-label="Next slide"
           >
-            →
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
           </button>
-        </div>
-
-        {/* Indicators */}
-        <div className="flex justify-center mt-8 space-x-2">
-          {Array.from({ length: Math.max(1, featuredProducts.length - 3) }, (_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentIndex(i)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                i === currentIndex ? 'bg-neon-green' : 'bg-gray-600 hover:bg-gray-400'
-              }`}
-            />
-          ))}
         </div>
       </div>
     </section>
