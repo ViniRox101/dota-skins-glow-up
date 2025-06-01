@@ -3,8 +3,9 @@ import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import SkinShowcase from '@/components/SkinShowcase';
 import Features from '@/components/Features';
-import Testimonials from '@/components/Testimonials';
-import CTASection from '@/components/CTASection';
+import ProductList from '@/components/ProductList';
+
+
 import Footer from '@/components/Footer';
 import FeaturedProductCarousel from '@/components/FeaturedProductCarousel';
 
@@ -14,10 +15,13 @@ const Index = () => {
       <Header />
       <main>
         <HeroSection />
+
+
+
         <FeaturedProductCarousel />
         <Features />
-        <Testimonials />
-        <CTASection />
+
+        
       </main>
       <Footer />
     </div>

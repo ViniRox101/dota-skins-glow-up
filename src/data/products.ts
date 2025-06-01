@@ -7,6 +7,7 @@ export interface Product {
   category: string;
   isNew: boolean;
   isFeatured: boolean; // Adicionar a propriedade isFeatured
+  desconto_porcentagem?: number; // Adiciona a porcentagem de desconto
 }
 
 export const products: Product[] = [

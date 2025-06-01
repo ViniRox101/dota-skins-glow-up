@@ -33,10 +33,23 @@ const AdminDashboard: React.FC = () => {
                 <span>Gerenciar Categorias</span>
               </Link>
             </li>
+
             <li>
-              <Link to="/admin/manage-tags" className="flex items-center space-x-3 p-2 rounded-md text-gray-300 hover:bg-neon-green/20 hover:text-neon-green transition-colors duration-200">
+              <Link to="/admin/manage-heroes" className="flex items-center space-x-3 p-2 rounded-md text-gray-300 hover:bg-neon-green/20 hover:text-neon-green transition-colors duration-200">
+                <User className="h-5 w-5" />
+                <span>Gerenciar Heróis</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/admin/manage-equippable-parts" className="flex items-center space-x-3 p-2 rounded-md text-gray-300 hover:bg-neon-green/20 hover:text-neon-green transition-colors duration-200">
                 <Tag className="h-5 w-5" />
-                <span>Gerenciar Tags</span>
+                <span>Gerenciar Partes Equipáveis</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/admin/manage-rarities" className="flex items-center space-x-3 p-2 rounded-md text-gray-300 hover:bg-neon-green/20 hover:text-neon-green transition-colors duration-200">
+                <List className="h-5 w-5" />
+                <span>Gerenciar Raridades</span>
               </Link>
             </li>
             <li>
@@ -45,36 +58,7 @@ const AdminDashboard: React.FC = () => {
                 Produtos
               </Link>
             </li>
-            <li>
-              <Link to="#" className="flex items-center p-2 text-gray-300 hover:bg-neon-green/20 rounded-md transition-colors duration-200">
-                <Tag className="mr-3 h-5 w-5" />
-                Categorias
-              </Link>
-            </li>
-            <li>
-              <Link to="#" className="flex items-center p-2 text-gray-300 hover:bg-neon-green/20 rounded-md transition-colors duration-200">
-                <ShoppingCart className="mr-3 h-5 w-5" />
-                Pedidos
-              </Link>
-            </li>
-            <li>
-              <Link to="#" className="flex items-center p-2 text-gray-300 hover:bg-neon-green/20 rounded-md transition-colors duration-200">
-                <Users className="mr-3 h-5 w-5" />
-                Clientes
-              </Link>
-            </li>
-            <li>
-              <Link to="#" className="flex items-center p-2 text-gray-300 hover:bg-neon-green/20 rounded-md transition-colors duration-200">
-                <MessageSquare className="mr-3 h-5 w-5" />
-                Mensagens
-              </Link>
-            </li>
-            <li>
-              <Link to="#" className="flex items-center p-2 text-gray-300 hover:bg-neon-green/20 rounded-md transition-colors duration-200">
-                <Settings className="mr-3 h-5 w-5" />
-                Configurações
-              </Link>
-            </li>
+
           </ul>
         </nav>
       </aside>
@@ -92,9 +76,6 @@ const AdminDashboard: React.FC = () => {
         {/* Content Area */}
         <main className="flex-1 p-8">
           <Outlet />
-          {/* Rotas aninhadas para o dashboard */}
-          {window.location.pathname === '/admin' && <Dashboard />}
-          {window.location.pathname === '/admin/manage-products' && <ManageProducts />}
         </main>
       </div>
     </div>
