@@ -13,8 +13,17 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const sessionId = url.searchParams.get('session_id');
+    let sessionId: string | null = null;
+
+    if (req.method === 'GET') {
+      // Para requisições GET, pegar da URL
+      const url = new URL(req.url);
+      sessionId = url.searchParams.get('session_id');
+    } else if (req.method === 'POST') {
+      // Para requisições POST, pegar do body
+      const body = await req.json();
+      sessionId = body.session_id;
+    }
 
     if (!sessionId) {
       throw new Error('Session ID é obrigatório');
