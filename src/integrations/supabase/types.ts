@@ -51,80 +51,114 @@ export type Database = {
         }
         Relationships: []
       }
+      herois: {
+        Row: {
+          id: string
+          nome: string
+          slug: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          slug: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           categoria_id: string | null
           contador_estoque_ativo: boolean | null
           created_at: string | null
+          desconto_porcentagem: number | null
           descricao: string | null
           destaque: boolean | null
           estoque: number | null
+          heroi_id: string | null
           id: string
           imagens: string[] | null
           link_whatsapp: string | null
+          mega_destaque: boolean | null
           mostrar_quando_esgotado: boolean | null
           nome: string
+          parte_equipavel_id: string | null
           preco: number
+          preco_desconto: number | null
           raridade_id: string | null
           timer_ativo: boolean | null
           timer_fim: string | null
           updated_at: string | null
-          mega_destaque: boolean | null // Adicionado
-          hero_id: string | null // Adicionado
         }
         Insert: {
           categoria_id?: string | null
           contador_estoque_ativo?: boolean | null
           created_at?: string | null
+          desconto_porcentagem?: number | null
           descricao?: string | null
           destaque?: boolean | null
           estoque?: number | null
+          heroi_id?: string | null
           id?: string
           imagens?: string[] | null
           link_whatsapp?: string | null
+          mega_destaque?: boolean | null
           mostrar_quando_esgotado?: boolean | null
           nome: string
+          parte_equipavel_id?: string | null
           preco: number
+          preco_desconto?: number | null
           raridade_id?: string | null
           timer_ativo?: boolean | null
           timer_fim?: string | null
           updated_at?: string | null
-          mega_destaque?: boolean | null // Adicionado
-          hero_id?: string | null // Adicionado
         }
         Update: {
           categoria_id?: string | null
           contador_estoque_ativo?: boolean | null
           created_at?: string | null
+          desconto_porcentagem?: number | null
           descricao?: string | null
           destaque?: boolean | null
           estoque?: number | null
+          heroi_id?: string | null
           id?: string
           imagens?: string[] | null
           link_whatsapp?: string | null
+          mega_destaque?: boolean | null
           mostrar_quando_esgotado?: boolean | null
           nome?: string
+          parte_equipavel_id?: string | null
           preco?: number
+          preco_desconto?: number | null
           raridade_id?: string | null
           timer_ativo?: boolean | null
           timer_fim?: string | null
           updated_at?: string | null
-          mega_destaque?: boolean | null // Adicionado
-          hero_id?: string | null // Adicionado
         }
         Relationships: [
-          {
-            foreignKeyName: "items_hero_id_fkey"
-            columns: ["hero_id"]
-            isOneToOne: false
-            referencedRelation: "herois"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "items_categoria_id_fkey"
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_heroi_id_fkey"
+            columns: ["heroi_id"]
+            isOneToOne: false
+            referencedRelation: "herois"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_parte_equipavel_id_fkey"
+            columns: ["parte_equipavel_id"]
+            isOneToOne: false
+            referencedRelation: "partes_equipaveis"
             referencedColumns: ["id"]
           },
           {
@@ -136,36 +170,66 @@ export type Database = {
           },
         ]
       }
-      raridades: {
+      partes_equipaveis: {
         Row: {
-          cor_hex: string
           id: string
           nome: string
+          slug: string
         }
         Insert: {
-          cor_hex: string
           id?: string
           nome: string
+          slug: string
         }
         Update: {
-          cor_hex?: string
           id?: string
           nome?: string
+          slug?: string
         }
         Relationships: []
       }
-      herois: {
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      raridades: {
         Row: {
           id: string
           nome: string
+          slug: string
         }
         Insert: {
           id?: string
           nome: string
+          slug: string
         }
         Update: {
           id?: string
           nome?: string
+          slug?: string
         }
         Relationships: []
       }

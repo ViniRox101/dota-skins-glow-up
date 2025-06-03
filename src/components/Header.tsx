@@ -1,13 +1,18 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User, ShoppingCart } from 'lucide-react';
 import { useMobile } from '../hooks/use-mobile.ts';
+import { getSession } from '../integrations/supabase/client';
+import { useCart } from '../contexts/CartContext';
+import { Badge } from '@/components/ui/badge';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Estado para controlar o menu mobile
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Estado para verificar se o usuário está logado
   const isMobile = useMobile(); // Hook para detectar dispositivo móvel
+  const { getCartCount } = useCart(); // Obter a contagem de itens do carrinho
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +21,15 @@ const Header = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const session = await getSession();
+      setIsLoggedIn(!!session);
+    };
+    
+    checkAuth();
   }, []);
 
   const scrollToSection = (id: string) => {
@@ -75,9 +89,24 @@ const Header = () => {
           >
             FAQ
           </Link>
-          <Link to="/login" className="text-white hover:text-neon-green transition-colors duration-300">
-            Login
+          <Link to="/cart" className="text-white hover:text-neon-green transition-colors duration-300 flex items-center relative">
+            <ShoppingCart size={18} className="mr-1" />
+            {getCartCount() > 0 && (
+              <Badge className="absolute -top-2 -right-2 bg-neon-green text-game-dark px-1 py-0 min-w-[1.2rem] h-[1.2rem] flex items-center justify-center rounded-full text-xs">
+                {getCartCount()}
+              </Badge>
+            )}
+            Carrinho
           </Link>
+          {isLoggedIn ? (
+            <Link to="/profile" className="text-white hover:text-neon-green transition-colors duration-300 flex items-center">
+              <User size={18} className="mr-1" /> Perfil
+            </Link>
+          ) : (
+            <Link to="/login" className="text-white hover:text-neon-green transition-colors duration-300">
+              Login
+            </Link>
+          )}
         </nav>
 
         {/* Menu mobile (condicional) */}
@@ -110,9 +139,24 @@ const Header = () => {
             >
               FAQ
             </Link>
-            <Link to="/login" className="block w-full text-center py-2 text-white hover:bg-neon-green hover:text-game-dark transition-colors duration-300" onClick={() => setIsMenuOpen(false)}>
-              Login
+            <Link to="/cart" className="block w-full text-center py-2 text-white hover:bg-neon-green hover:text-game-dark transition-colors duration-300 flex items-center justify-center border-b border-neon-green/10" onClick={() => setIsMenuOpen(false)}>
+              <ShoppingCart size={18} className="mr-1" />
+              {getCartCount() > 0 && (
+                <Badge className="ml-1 bg-neon-green text-game-dark px-1 py-0 min-w-[1.2rem] h-[1.2rem] flex items-center justify-center rounded-full text-xs">
+                  {getCartCount()}
+                </Badge>
+              )}
+              Carrinho
             </Link>
+            {isLoggedIn ? (
+              <Link to="/profile" className="block w-full text-center py-2 text-white hover:bg-neon-green hover:text-game-dark transition-colors duration-300 flex items-center justify-center" onClick={() => setIsMenuOpen(false)}>
+                <User size={18} className="mr-1" /> Perfil
+              </Link>
+            ) : (
+              <Link to="/login" className="block w-full text-center py-2 text-white hover:bg-neon-green hover:text-game-dark transition-colors duration-300" onClick={() => setIsMenuOpen(false)}>
+                Login
+              </Link>
+            )}
           </div>
         )}
       </div>
