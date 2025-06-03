@@ -53,19 +53,25 @@ const SuccessPage: React.FC = () => {
       
       console.log('Buscando detalhes da sessão via Edge Function...');
       
-      const { data, error } = await supabase.functions.invoke('get-session-details', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: new URLSearchParams({ session_id: sessionId }),
-      });
+      // Fazer uma requisição GET para a edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-session-details?session_id=${sessionId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-      if (error) {
-        console.error('Erro na Edge Function:', error);
-        throw new Error(error.message || 'Erro ao buscar detalhes do pedido');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erro na requisição:', response.status, errorText);
+        throw new Error(`Erro na requisição: ${response.status}`);
       }
 
+      const data = await response.json();
       console.log('Resposta da Edge Function:', data);
       
       if (!data || !data.session) {
