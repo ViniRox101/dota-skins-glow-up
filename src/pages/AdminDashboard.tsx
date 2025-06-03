@@ -58,6 +58,12 @@ const AdminDashboard: React.FC = () => {
                 Produtos
               </Link>
             </li>
+            <li>
+              <Link to="/admin/giveaway" className="flex items-center space-x-3 p-2 rounded-md text-gray-300 hover:bg-neon-green/20 hover:text-neon-green transition-colors duration-200">
+                <List className="h-5 w-5" />
+                <span>Sorteio</span>
+              </Link>
+            </li>
 
           </ul>
         </nav>

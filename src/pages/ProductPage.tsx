@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
-import { BuyModal } from '@/components/ui/BuyModal'; // Importa o BuyModal
-import { Button } from '@/components/ui/button'; // Importa o Button
+import { ShoppingCart, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
+import { useCart } from '../contexts/CartContext';
 
 interface Product {
   id: string;
@@ -32,6 +34,40 @@ const ProductPage = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    if (product.estoque && product.estoque <= 0) {
+      toast({
+        title: "Produto indisponível",
+        description: "Este produto está fora de estoque no momento.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    addToCart({
+      id: product.id,
+      nome: product.nome,
+      preco: product.preco,
+      desconto_porcentagem: product.desconto_porcentagem,
+      imagem: product.imagens && product.imagens.length > 0 ? product.imagens[0] : "/placeholder.svg",
+      quantidade: 1
+    });
+    
+    toast({
+      title: "Produto adicionado",
+      description: "Item adicionado ao carrinho com sucesso!",
+      variant: "default"
+    });
+  };
+  
+  const goToCart = () => {
+    navigate('/cart');
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -183,11 +219,24 @@ const ProductPage = () => {
                 <span className="text-5xl font-bold text-white">R$ {product.preco ? product.preco.toFixed(2) : '0.00'}</span>
               )}
 
-              <BuyModal whatsappLink="https://wa.link/196mnu">
-                <Button className="bg-neon-green text-game-dark px-8 py-3 rounded-lg font-bold text-xl hover:bg-neon-green/90 transition-all duration-300">
-                  Comprar Agora
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  onClick={handleAddToCart}
+                  className="bg-neon-green hover:bg-neon-green/80 text-game-dark font-bold py-3 px-6 rounded-md transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center"
+                  disabled={loading || !product}
+                >
+                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShoppingCart className="mr-2 h-4 w-4" />}
+                  Adicionar ao Carrinho
                 </Button>
-              </BuyModal>
+                <Button 
+                  onClick={goToCart}
+                  variant="outline"
+                  className="border-neon-green text-neon-green hover:bg-neon-green/10 font-bold py-3 px-6 rounded-md transition-all duration-300 ease-in-out"
+                  disabled={loading}
+                >
+                  Ver Carrinho
+                </Button>
+              </div>
             </div>
 
             {/* Informações Adicionais */}
@@ -208,5 +257,7 @@ const ProductPage = () => {
     </div>
   );
 };
+
+
 
 export default ProductPage;
