@@ -278,6 +278,10 @@ export type Database = {
         Args: { product_name: string; quantity: number }
         Returns: boolean
       }
+      decrement_stock_by_id: {
+        Args: { p_product_id: string; quantity_to_decrement: number }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
