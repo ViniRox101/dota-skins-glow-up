@@ -133,15 +133,19 @@ serve(async (req) => {
 
         console.log("Resultados da atualização de estoque:", stockResults);
 
-        // Registrar o pedido na tabela orders (opcional)
+        // Registrar o pedido na tabela orders
         try {
           const { error: orderError } = await supabase
             .from('orders')
             .insert({
               session_id: session.id,
               email: session.customer_details?.email || 'unknown',
-              total: (session.amount_total || 0) / 100,
-              items: productItems,
+              total_amount: session.amount_total || 0,
+              customer_details: {
+                email: session.customer_details?.email,
+                name: session.customer_details?.name
+              },
+              product_items: productItems,
               status: 'completed'
             });
 
