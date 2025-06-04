@@ -170,6 +170,42 @@ export type Database = {
           },
         ]
       }
+      orders: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          items: Json
+          session_id: string
+          status: string
+          total: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          items: Json
+          session_id: string
+          status?: string
+          total: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          items?: Json
+          session_id?: string
+          status?: string
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       partes_equipaveis: {
         Row: {
           id: string
@@ -238,7 +274,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      decrement_stock: {
+        Args: { product_name: string; quantity: number }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

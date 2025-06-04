@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, ArrowLeft, Download, Copy, ExternalLink } from 'lucide-react';
+import { CheckCircle, ArrowLeft, Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,7 +14,6 @@ interface OrderItem {
   name: string;
   price: string;
   quantity: number;
-  image_url?: string;
 }
 
 interface OrderDetails {
@@ -280,6 +279,8 @@ const SuccessPage: React.FC = () => {
       }
     };
 
+
+
     if (sessionId) {
       console.log('useEffect disparado com sessionId:', sessionId);
       doFetchOrderDetails(sessionId, componentSignal, 0); // Passar componentSignal
@@ -316,6 +317,8 @@ const SuccessPage: React.FC = () => {
       });
     }
   };
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-game-dark to-gray-900 text-white">
