@@ -72,7 +72,7 @@ const CartPage: React.FC = () => {
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-xl font-bold">
+                              <span className="text-xl font-bold text-white">
                                 R$ {item.preco.toFixed(2)}
                               </span>
                             )}
@@ -81,27 +81,27 @@ const CartPage: React.FC = () => {
                             <Button 
                               variant="outline" 
                               size="icon" 
-                              className="h-8 w-8 rounded-full border-gray-600"
+                              className="h-9 w-9 rounded-full border-gray-500 bg-gray-700 text-white hover:bg-gray-600"
                               onClick={() => updateQuantity(item.id, item.quantidade - 1)}
                             >
-                              <Minus className="h-4 w-4" />
+                              <Minus className="h-5 w-5" />
                             </Button>
-                            <span className="w-8 text-center">{item.quantidade}</span>
+                            <span className="w-10 text-center text-lg text-white font-medium">{item.quantidade}</span>
                             <Button 
                               variant="outline" 
                               size="icon" 
-                              className="h-8 w-8 rounded-full border-gray-600"
+                              className="h-9 w-9 rounded-full border-gray-500 bg-gray-700 text-white hover:bg-gray-600"
                               onClick={() => updateQuantity(item.id, item.quantidade + 1)}
                             >
-                              <Plus className="h-4 w-4" />
+                              <Plus className="h-5 w-5" />
                             </Button>
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-8 w-8 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                              className="h-9 w-9 text-red-400 hover:text-red-300 hover:bg-red-500/20"
                               onClick={() => removeFromCart(item.id)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-5 w-5" />
                             </Button>
                           </div>
                         </div>
@@ -124,17 +124,17 @@ const CartPage: React.FC = () => {
             <div className="lg:col-span-1">
               <Card className="bg-gray-800/50 border-neon-green/20 sticky top-24">
                 <CardHeader>
-                  <CardTitle className="text-xl">Resumo do Pedido</CardTitle>
+                  <CardTitle className="text-2xl font-semibold text-neon-green">Resumo do Pedido</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Subtotal</span>
-                      <span>R$ {getCartTotal().toFixed(2)}</span>
+                    <div className="flex justify-between text-lg">
+                      <span className="text-gray-300">Subtotal</span>
+                      <span className="text-white font-medium">R$ {getCartTotal().toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between font-bold text-neon-green">
-                      <span>Total</span>
-                      <span>R$ {getCartTotal().toFixed(2)}</span>
+                    <div className="flex justify-between text-xl font-bold text-neon-green">
+                      <span className="text-neon-green">Total</span>
+                      <span className="text-neon-green">R$ {getCartTotal().toFixed(2)}</span>
                     </div>
                   </div>
                 </CardContent>
