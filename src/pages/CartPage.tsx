@@ -6,22 +6,17 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useCart } from '@/contexts/CartContext';
-import StripeCheckout from '@/components/StripeCheckout';
+
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
 
-  // Formatar o produto para o formato esperado pelo StripeCheckout
-  const formatProductsForCheckout = () => {
-    return cartItems.map(item => ({
-      id: item.id,
-      name: item.nome,
-      price: item.desconto_porcentagem 
-        ? item.preco * (1 - item.desconto_porcentagem / 100) 
-        : item.preco,
-      quantity: item.quantidade
-    }));
+  const handleCheckout = () => {
+    // Aqui você pode implementar sua própria lógica de checkout
+    // Por exemplo, redirecionar para uma página de checkout personalizada
+    // ou integrar com outro provedor de pagamento
+    alert('Funcionalidade de checkout será implementada em breve!');
   };
 
   return (
@@ -139,10 +134,12 @@ const CartPage: React.FC = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <StripeCheckout 
-                    products={formatProductsForCheckout()} 
+                  <Button 
+                    onClick={handleCheckout}
                     className="w-full bg-neon-green text-game-dark hover:bg-neon-green/90"
-                  />
+                  >
+                    Finalizar Compra
+                  </Button>
                 </CardFooter>
               </Card>
             </div>
