@@ -49,20 +49,23 @@ const ProductPage = () => {
       return;
     }
     
-    addToCart({
+    const success = addToCart({
       id: product.id,
       nome: product.nome,
       preco: product.preco,
       desconto_porcentagem: product.desconto_porcentagem,
       imagem: product.imagens && product.imagens.length > 0 ? product.imagens[0] : "/placeholder.svg",
-      quantidade: 1
+      quantidade: 1,
+      stock: product.estoque // Adicionar o estoque aqui
     });
     
-    toast({
-      title: "Produto adicionado",
-      description: "Item adicionado ao carrinho com sucesso!",
-      variant: "default"
-    });
+    if (success) {
+      toast({
+        title: "Produto adicionado",
+        description: "Item adicionado ao carrinho com sucesso!",
+        variant: "default"
+      });
+    }
   };
   
   const goToCart = () => {
@@ -221,18 +224,17 @@ const ProductPage = () => {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
-                  onClick={handleAddToCart}
-                  className="bg-neon-green hover:bg-neon-green/80 text-game-dark font-bold py-3 px-6 rounded-md transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center"
-                  disabled={loading || !product}
+                  onClick={handleAddToCart} 
+                  className="w-full md:w-auto bg-neon-green text-game-dark hover:bg-neon-green/90 transition-colors duration-300 flex items-center justify-center gap-2 text-lg py-3 px-6 rounded-lg shadow-lg hover:shadow-neon-green/50"
+                  disabled={product.estoque <= 0}
                 >
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShoppingCart className="mr-2 h-4 w-4" />}
-                  Adicionar ao Carrinho
+                  <ShoppingCart className="h-5 w-5" />
+                  {product.estoque <= 0 ? 'Indisponível' : 'Adicionar ao Carrinho'}
                 </Button>
                 <Button 
-                  onClick={goToCart}
+                  onClick={goToCart} 
                   variant="outline"
-                  className="border-neon-green text-neon-green hover:bg-neon-green/10 font-bold py-3 px-6 rounded-md transition-all duration-300 ease-in-out"
-                  disabled={loading}
+                  className="w-full md:w-auto bg-purple-600 text-white hover:bg-purple-700 border-purple-600 hover:border-purple-700 transition-colors duration-300 flex items-center justify-center gap-2 text-lg py-3 px-6 rounded-lg shadow-lg hover:shadow-purple-500/50"
                 >
                   Ver Carrinho
                 </Button>

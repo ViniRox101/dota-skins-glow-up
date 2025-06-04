@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, ArrowLeft, Download, Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,8 @@ interface OrderDetails {
   customer_email?: string;
 }
 
+const MAX_RETRIES = 5; // Declarar MAX_RETRIES no escopo do módulo ou componente
+
 const SuccessPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
@@ -33,257 +35,276 @@ const SuccessPage: React.FC = () => {
   const { clearCart } = useCart();
   const [loading, setLoading] = useState(true);
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
-  const [fetchAttempts, setFetchAttempts] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Limpar o carrinho após o pagamento bem-sucedido
-    clearCart();
-    
-    // Buscar detalhes da sessão de checkout usando o sessionId
-    if (sessionId) {
-      console.log('Iniciando busca de detalhes do pedido com session_id:', sessionId);
-      fetchOrderDetails(sessionId);
-    } else {
-      console.error('Nenhum session_id encontrado na URL');
-      setLoading(false);
-    }
-  }, [sessionId, clearCart]);
+    const abortController = new AbortController();
+    const componentSignal = abortController.signal; // Renomear para evitar conflito e para clareza
 
-  // Função para buscar detalhes do pedido com retentativas e backoff exponencial
-  const fetchOrderDetails = async (sessionId: string, retryCount = 0, delay = 1000) => {
-    try {
+    const doFetchOrderDetails = async (currentSessionId: string, signal: AbortSignal, retryCount = 0, delay = 1000) => {
       setLoading(true);
-      setFetchAttempts(prev => prev + 1);
-      
-      // Primeiro, tentar buscar o pedido da tabela orders no Supabase
-      console.log(`[Tentativa ${retryCount + 1}] Buscando pedido da tabela orders...`);
-      
-      // Verificar se temos um token de autenticação válido
-      const { data: sessionData } = await supabase.auth.getSession();
-      const authToken = sessionData?.session?.access_token;
-      
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-      };
-      
-      // Adicionar token de autenticação se disponível
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      } else {
-        headers['Authorization'] = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
-      }
-      
+      setError(null);
+      console.log(`[Tentativa Global ${retryCount + 1}] Iniciando busca de detalhes do pedido com session_id: ${currentSessionId}`);
+
+      // 1. Tentar buscar na tabela 'orders' primeiro
       try {
+        console.log(`[Tentativa Tabela Orders ${retryCount + 1}] Buscando pedido da tabela orders...`);
+        const { data: sessionAuthData } = await supabase.auth.getSession();
+        const authToken = sessionAuthData?.session?.access_token;
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        };
+
+        // Etapa 1: Buscar o pedido principal
         const orderResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/orders?session_id=eq.${sessionId}&select=*`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/orders?session_id=eq.${currentSessionId}&select=*&limit=1`,
           {
             method: 'GET',
             headers: headers,
+            signal: signal,
           }
         );
-    
+
+        if (signal.aborted) {
+          console.log('Busca (tabela orders) abortada.');
+          setLoading(false);
+          return;
+        }
+
         if (orderResponse.ok) {
-          const orderData = await orderResponse.json();
-          console.log('Resposta da tabela orders:', orderData);
-          
-          if (orderData && orderData.length > 0) {
-            const order = orderData[0];
+          const orderDataArray = await orderResponse.json();
+          if (orderDataArray && orderDataArray.length > 0) {
+            const order = orderDataArray[0];
             console.log('Pedido encontrado na tabela orders:', order);
-            
-            // Formatar os itens do pedido
-            const formattedItems = order.items.map((item: any) => ({
-              name: item.product_name,
-              price: formatCurrency(item.price),
-              quantity: item.quantity,
-              image_url: item.image
-            }));
-            
-            setOrderDetails({
-              id: sessionId.substring(0, 8).toUpperCase(),
-              date: new Date(order.created_at).toLocaleDateString('pt-BR'),
-              items: formattedItems,
-              total: formatCurrency(order.total),
-              customer_email: order.email
-            });
-            
-            setLoading(false);
-            return;
-          } else {
-            console.log('Nenhum pedido encontrado na tabela orders');
-          }
-        } else {
-          console.error('Erro ao buscar pedido da tabela orders:', 
-            orderResponse.status, 
-            await orderResponse.text()
-          );
-        }
-      } catch (orderError) {
-        console.error('Erro ao buscar pedido da tabela orders:', orderError);
-        // Continuar para tentar a Edge Function
-      }
-      
-      // Se não encontrou na tabela orders, tentar a Edge Function
-      console.log(`[Tentativa ${retryCount + 1}] Buscando detalhes via Edge Function...`);
-      
-      // Adicionar um timeout para a requisição
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
-      
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-session-details?session_id=${sessionId}`,
-          {
-            method: 'GET',
-            headers: headers,
-            signal: controller.signal
-          }
-        );
-        
-        clearTimeout(timeoutId);
-    
-        // Se receber qualquer erro, tentar novamente com backoff exponencial
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Erro na requisição (tentativa ${retryCount + 1}):`, 
-            response.status, 
-            errorText
-          );
-          
-          throw new Error(`Erro ${response.status}: ${errorText}`);
-        }
-    
-        const data = await response.json();
-        console.log('Resposta da Edge Function:', data);
-        
-        if (!data || !data.session) {
-          throw new Error('Dados da sessão não encontrados');
-        }
-        
-        // Formatar os dados reais da sessão
-        const session = data.session;
-        const lineItems = data.lineItems || [];
-        
-        // Buscar detalhes dos produtos no Supabase para obter imagens e outras informações
-        const formattedItems = await Promise.all(lineItems.map(async (item: any) => {
-          const productName = item.description || 'Produto';
-          
-          // Tentar buscar informações adicionais do produto no Supabase
-          try {
-            const productResponse = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/items?nome=ilike.${encodeURIComponent('%' + productName + '%')}&select=id,nome,imagens`,
+
+            // Etapa 2: Buscar os itens do pedido
+            const orderItemsResponse = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/order_items?order_id=eq.${order.id}&select=quantity,price,items(id,nome,imagem_url,imagens)`,
               {
                 method: 'GET',
-                headers: {
-                  'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                  'Content-Type': 'application/json',
-                },
+                headers: headers,
+                signal: signal,
               }
             );
-            
-            if (productResponse.ok) {
-              const productData = await productResponse.json();
-              if (productData && productData.length > 0) {
-                return {
-                  name: productName,
-                  price: formatCurrency(item.amount_total / 100),
-                  quantity: item.quantity || 1,
-                  image_url: productData[0].imagens && productData[0].imagens.length > 0 ? productData[0].imagens[0] : null
-                };
+
+            if (signal.aborted) {
+              console.log('Busca (tabela order_items) abortada.');
+              setLoading(false);
+              return;
+            }
+
+            if (orderItemsResponse.ok) {
+              const orderItemsData = await orderItemsResponse.json();
+              console.log('Itens do pedido encontrados:', orderItemsData);
+
+              // Verificar se orderItemsData é um array e não um objeto de erro
+              if (Array.isArray(orderItemsData)) {
+                const formattedItems = orderItemsData.map((oi: any) => {
+                  // Adicionar verificação para oi.items antes de acessar suas propriedades
+                  const itemName = oi.items?.nome || 'Nome Indisponível';
+                  const itemImageUrl = oi.items?.imagem_url || oi.items?.imagens?.[0] || '/placeholder.svg';
+                  
+                  return {
+                    name: itemName,
+                    price: formatCurrency(oi.price / 100), // Assumindo oi.price é o preço unitário em centavos
+                    quantity: oi.quantity,
+                    image_url: itemImageUrl,
+                  };
+                });
+
+                setOrderDetails({
+                  id: order.id || currentSessionId.substring(0, 8).toUpperCase(),
+                  date: new Date(order.created_at).toLocaleDateString('pt-BR'),
+                  items: formattedItems,
+                  total: formatCurrency(order.total_amount / 100),
+                  customer_email: order.customer_details?.email || order.user_email || 'Email não disponível',
+                });
+                setLoading(false);
+                clearCart();
+                toast({ title: 'Pedido Carregado!', description: 'Detalhes do pedido carregados do banco de dados.' });
+                return;
+              } else {
+                console.error('Erro: orderItemsData não é um array. Dados recebidos:', orderItemsData);
+                // Continuar para o fallback da Edge Function
               }
             } else {
-              console.error('Erro ao buscar detalhes do produto:', productResponse.status);
+              const errorTextItems = await orderItemsResponse.text();
+              console.error('Erro ao buscar itens do pedido (order_items):', orderItemsResponse.status, errorTextItems);
+              // Continuar para o fallback da Edge Function se os itens não puderem ser carregados
             }
-          } catch (error) {
-            console.error('Erro ao buscar detalhes do produto:', error);
+          } else {
+            console.log('Nenhum pedido encontrado na tabela orders com o session_id fornecido.');
           }
+        } else {
+          const errorTextOrder = await orderResponse.text();
+          console.error('Erro ao buscar pedido da tabela orders:', orderResponse.status, errorTextOrder);
+        }
+      } catch (e: any) {
+        if (e.name === 'AbortError') {
+          console.warn('Busca (tabela orders/order_items) abortada via exceção.');
+          setLoading(false);
+          return;
+        }
+        console.error('Exceção ao buscar na tabela orders/order_items:', e);
+      }
+
+      if (signal.aborted) {
+        console.log('Sinal abortado antes de tentar a Edge Function.');
+        setLoading(false);
+        return;
+      }
+      console.log(`[Tentativa Edge Function ${retryCount + 1}] Buscando detalhes via Edge Function...`);
+      try {
+        const { data: sessionAuthData } = await supabase.auth.getSession();
+        const authToken = sessionAuthData?.session?.access_token;
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        };
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-session-details?session_id=${currentSessionId}`,
+          {
+            method: 'GET',
+            headers: headers,
+            signal: signal, // Usar o signal passado para a função
+          }
+        );
+
+        if (signal.aborted) {
+          console.log('Busca (Edge Function) abortada.');
+          setLoading(false);
+          return;
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Erro na requisição (Edge Function, tentativa ${retryCount + 1}):`, response.status, errorText);
+          throw new Error(`Erro ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Resposta da Edge Function:', data);
+
+        if (!data || !data.session) {
+          throw new Error('Dados da sessão não encontrados na resposta da Edge Function');
+        }
+
+        const session = data.session;
+        const lineItems = data.lineItems || [];
+
+        interface ProductDetails {
+          id: string;
+          nome: string;
+          imagem_url?: string;
+          imagens?: string[];
+        }
+
+        const formattedItems = await Promise.all(lineItems.map(async (item: any) => {
+          const productName = item.description || item.price?.product?.name || 'Produto Desconhecido';
+          let imageUrl = item.price?.product?.images?.[0] || '/placeholder.svg';
           
-          // Fallback se não conseguir buscar informações adicionais
+          try {
+              // Tentar buscar da tabela 'items'
+              // Simplificando o select para tentar mitigar o erro de instanciação profunda
+              const { data: productData, error: productError } = await supabase
+                  .from('items') 
+                  .select('id, nome, imagem_url, imagens') // Mantido por enquanto, mas monitorar se o erro de instanciação persiste
+                  .eq('stripe_product_id', item.price?.product?.id) 
+                  .maybeSingle<ProductDetails>(); // Adicionando tipo explícito
+
+              if (productError && productError.code !== 'PGRST116') { 
+                  console.warn('Erro ao buscar detalhes do produto no Supabase:', productError);
+              }
+              if (productData) {
+                  imageUrl = productData.imagem_url || productData.imagens?.[0] || imageUrl;
+              }
+          } catch (e) {
+              console.warn('Exceção ao buscar produto no Supabase:', e);
+          }
+
           return {
             name: productName,
-            price: formatCurrency(item.amount_total / 100),
-            quantity: item.quantity || 1
+            price: formatCurrency((item.amount_total || item.price?.unit_amount || 0) / 100),
+            quantity: item.quantity || 1,
+            image_url: imageUrl,
           };
-        }));
-    
+        }));      
+
         setOrderDetails({
-          id: sessionId.substring(0, 8).toUpperCase(),
-          date: new Date(session.created * 1000).toLocaleDateString('pt-BR'),
+          id: session.id?.substring(0, 8).toUpperCase() || currentSessionId.substring(0, 8).toUpperCase(),
+          date: new Date((session.created || Date.now() / 1000) * 1000).toLocaleDateString('pt-BR'),
           items: formattedItems,
-          total: formatCurrency(session.amount_total / 100),
-          customer_email: session.customer_details?.email
+          total: formatCurrency((session.amount_total || 0) / 100),
+          customer_email: session.customer_details?.email || session.customer_email || 'Email não disponível',
         });
-        
-        // Registrar visualização do pedido
-        console.log('Detalhes do pedido carregados com sucesso');
-      } catch (fetchError) {
-        console.error('Erro ao buscar dados da Edge Function:', fetchError);
-        
-        // Máximo de 5 tentativas com backoff exponencial
-        if (retryCount < 5) {
-          // Calcular delay com jitter para evitar thundering herd
-          const jitter = Math.random() * 500;
-          const nextDelay = Math.min(delay * 1.5 + jitter, 10000); // Máximo de 10 segundos
-          
-          console.log(`Tentando novamente em ${nextDelay}ms...`);
-          // Mostrar toast informando sobre a tentativa
-          toast({
-            title: "Tentando novamente",
-            description: `Tentativa ${retryCount + 1} de 5. Aguarde um momento...`,
-            duration: nextDelay,
-          });
-          
-          // Aguardar o tempo de delay e tentar novamente com delay exponencial
-          setTimeout(() => {
-            fetchOrderDetails(sessionId, retryCount + 1, nextDelay);
-          }, nextDelay);
+        setLoading(false);
+        clearCart();
+        toast({ title: 'Sucesso!', description: 'Detalhes do pedido carregados com sucesso via Edge Function.' });
+        return;
+
+      } catch (fetchError: any) {
+        if (fetchError.name === 'AbortError') {
+          console.warn(`Busca (Edge Function, tentativa ${retryCount + 1}) abortada via exceção.`);
+          if (retryCount >= MAX_RETRIES - 1) {
+              setLoading(false);
+          }
           return;
+        }
+        console.error(`💔 Erro ao buscar dados da Edge Function (tentativa ${retryCount + 1}):`, fetchError);
+
+        const nextDelay = Math.min(delay * 2, 30000);
+
+        if (retryCount < MAX_RETRIES - 1 && !signal.aborted) { // Usar signal aqui
+          console.log(`Tentando novamente em ${nextDelay / 1000}s... (Tentativa ${retryCount + 2})`);
+          setTimeout(() => {
+            if (!signal.aborted) { // Usar signal aqui
+              doFetchOrderDetails(currentSessionId, signal, retryCount + 1, nextDelay); // Passar signal
+            } else {
+              console.log('Não tentando novamente, sinal já abortado antes do setTimeout callback.');
+              setLoading(false);
+            }
+          }, nextDelay);
         } else {
-          // Se atingiu o número máximo de tentativas, usar dados simulados
-          throw new Error(`Falha após ${retryCount} tentativas.`);
+          if (signal.aborted) { // Usar signal aqui
+            console.log('Máximo de tentativas atingido, mas sinal já abortado.');
+          } else {
+            console.error('Máximo de tentativas atingido. Falha ao carregar detalhes do pedido.');
+            setError(`Falha ao carregar detalhes do pedido após ${MAX_RETRIES} tentativas. Por favor, verifique sua conexão ou tente novamente mais tarde.`);
+          }
+          setLoading(false);
         }
       }
-      
-    } catch (error) {
-      console.error('Erro ao buscar detalhes do pedido:', error);
-      // Usar dados simulados em caso de erro
-      setOrderDetails({
-        id: sessionId.substring(0, 8).toUpperCase(),
-        date: new Date().toLocaleDateString('pt-BR'),
-        items: [
-          { name: 'Dota 2 Skin Bundle', price: 'R$ 50,00', quantity: 1 }
-        ],
-        total: 'R$ 50,00'
-      });
-      
-      toast({
-        title: "Erro ao carregar detalhes",
-        description: "Não foi possível carregar todos os detalhes do pedido, mas seu pagamento foi confirmado com sucesso. Você pode tentar novamente em alguns instantes.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const formatCurrency = (value: number): string => {
+    if (sessionId) {
+      console.log('useEffect disparado com sessionId:', sessionId);
+      doFetchOrderDetails(sessionId, componentSignal, 0); // Passar componentSignal
+    } else {
+      toast({
+        title: 'Erro',
+        description: 'ID da sessão não encontrado na URL.',
+        variant: 'destructive',
+      });
+      setLoading(false);
+      navigate('/');
+    }
+
+    return () => {
+      console.log('Limpando useEffect da SuccessPage: Abortando requisições pendentes.');
+      abortController.abort();
+    };
+  // Removido fetchOrderDetails das dependências pois está definido dentro do useEffect
+  }, [sessionId, navigate, toast, clearCart]); 
+
+  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(value);
-  };
-
-  // Função para tentar novamente manualmente
-  const retryFetchOrderDetails = () => {
-    if (sessionId) {
-      setLoading(true);
-      toast({
-        title: "Tentando novamente",
-        description: "Buscando detalhes do seu pedido...",
-      });
-      fetchOrderDetails(sessionId);
-    }
   };
 
   const copyOrderId = () => {
@@ -351,7 +372,7 @@ const SuccessPage: React.FC = () => {
                               alt={item.name} 
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = '/placeholder-item.png';
+                                (e.target as HTMLImageElement).src = '/placeholder-item.svg';
                               }}
                             />
                           </div>
@@ -377,16 +398,7 @@ const SuccessPage: React.FC = () => {
                     <li>Seus itens serão adicionados à sua conta Dota 2 automaticamente.</li>
                     <li>Em caso de problemas, entre em contato com nosso suporte com o número do pedido.</li>
                   </ol>
-                  {/* Botão para tentar novamente caso tenha ocorrido erro */}
-                  {(orderDetails?.items.length === 1 && orderDetails.items[0].name === 'Dota 2 Skin Bundle') || fetchAttempts < 3 ? (
-                    <Button 
-                      onClick={retryFetchOrderDetails} 
-                      className="mt-4 w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={loading}
-                    >
-                      {loading ? 'Carregando...' : 'Tentar carregar detalhes novamente'}
-                    </Button>
-                  ) : null}
+                  {/* Botão de tentar novamente removido por enquanto */}
                 </div>
               </>
             )}

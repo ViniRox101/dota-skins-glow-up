@@ -19,6 +19,7 @@ serve(async (req) => {
         currency: 'brl',
         product_data: {
           name: product.name,
+          metadata: { supabase_product_id: product.id }, // Adicionando o ID do produto Supabase
         },
         unit_amount: product.price * 100, // Stripe espera o valor em centavos
       },

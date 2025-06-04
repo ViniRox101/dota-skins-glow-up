@@ -8,6 +8,7 @@ export interface Product {
   isNew: boolean;
   isFeatured: boolean; // Adicionar a propriedade isFeatured
   desconto_porcentagem?: number; // Adiciona a porcentagem de desconto
+  stock: number; // Adicionar o campo de estoque
 }
 
 export const products: Product[] = [
@@ -20,6 +21,7 @@ export const products: Product[] = [
     category: 'Manopla',
     isNew: true,
     isFeatured: true, // Marcar como destaque
+    stock: 10, // Estoque inicial
   },
   {
     id: '2',
@@ -30,6 +32,7 @@ export const products: Product[] = [
     category: 'Capa',
     isNew: false,
     isFeatured: true, // Marcar como destaque
+    stock: 5, // Estoque inicial
   },
   {
     id: '3',
@@ -40,6 +43,7 @@ export const products: Product[] = [
     category: 'Espada',
     isNew: true,
     isFeatured: false,
+    stock: 7, // Estoque inicial
   },
   {
     id: '4',
@@ -50,5 +54,6 @@ export const products: Product[] = [
     category: 'Gancho',
     isNew: false,
     isFeatured: false,
+    stock: 0, // Exemplo de item sem estoque
   },
 ];
