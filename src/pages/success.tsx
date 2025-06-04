@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, ArrowLeft, Copy, ExternalLink } from 'lucide-react';
@@ -14,6 +15,7 @@ interface OrderItem {
   name: string;
   price: string;
   quantity: number;
+  image_url?: string;
 }
 
 interface OrderDetails {
@@ -24,7 +26,7 @@ interface OrderDetails {
   customer_email?: string;
 }
 
-const MAX_RETRIES = 5; // Declarar MAX_RETRIES no escopo do módulo ou componente
+const MAX_RETRIES = 5;
 
 const SuccessPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -38,24 +40,18 @@ const SuccessPage: React.FC = () => {
 
   useEffect(() => {
     const abortController = new AbortController();
-    const componentSignal = abortController.signal; // Renomear para evitar conflito e para clareza
+    const componentSignal = abortController.signal;
 
     const doFetchOrderDetails = async (currentSessionId: string, signal: AbortSignal, retryCount = 0, delay = 1000) => {
       setLoading(true);
       setError(null);
       console.log(`[Tentativa Global ${retryCount + 1}] Iniciando busca de detalhes do pedido com session_id: ${currentSessionId}`);
 
-      // 1. Tentar buscar na tabela 'orders' primeiro
       try {
         console.log(`[Tentativa Tabela Orders ${retryCount + 1}] Buscando pedido da tabela orders...`);
         const { data: sessionAuthData } = await supabase.auth.getSession();
         const authToken = sessionAuthData?.session?.access_token;
-        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        
-        if (!anonKey) {
-          console.error('VITE_SUPABASE_ANON_KEY não encontrada nas variáveis de ambiente');
-          throw new Error('Configuração do Supabase não encontrada');
-        }
+        const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzanp0bGVzdm9xYXF1dmlhc3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0OTUyNTcsImV4cCI6MjA2NDA3MTI1N30.BZJh5goyZNvtCT9dCzm66sMjkzkm2dCsK6AZnlqC8R4';
         
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
@@ -63,9 +59,8 @@ const SuccessPage: React.FC = () => {
           'Authorization': `Bearer ${authToken || anonKey}`,
         };
 
-        // Etapa 1: Buscar o pedido principal
         const orderResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/orders?session_id=eq.${currentSessionId}&select=*&limit=1`,
+          `https://esjztlesvoqaquviasxl.supabase.co/rest/v1/orders?session_id=eq.${currentSessionId}&select=*&limit=1`,
           {
             method: 'GET',
             headers: headers,
@@ -85,9 +80,8 @@ const SuccessPage: React.FC = () => {
             const order = orderDataArray[0];
             console.log('Pedido encontrado na tabela orders:', order);
 
-            // Etapa 2: Buscar os itens do pedido
             const orderItemsResponse = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/order_items?order_id=eq.${order.id}&select=quantity,price,items(id,nome,imagem_url,imagens)`,
+              `https://esjztlesvoqaquviasxl.supabase.co/rest/v1/order_items?order_id=eq.${order.id}&select=quantity,price,items(id,nome,imagem_url,imagens)`,
               {
                 method: 'GET',
                 headers: headers,
@@ -105,16 +99,14 @@ const SuccessPage: React.FC = () => {
               const orderItemsData = await orderItemsResponse.json();
               console.log('Itens do pedido encontrados:', orderItemsData);
 
-              // Verificar se orderItemsData é um array e não um objeto de erro
               if (Array.isArray(orderItemsData)) {
                 const formattedItems = orderItemsData.map((oi: any) => {
-                  // Adicionar verificação para oi.items antes de acessar suas propriedades
                   const itemName = oi.items?.nome || 'Nome Indisponível';
                   const itemImageUrl = oi.items?.imagem_url || oi.items?.imagens?.[0] || '/placeholder.svg';
                   
                   return {
                     name: itemName,
-                    price: formatCurrency(oi.price / 100), // Assumindo oi.price é o preço unitário em centavos
+                    price: formatCurrency(oi.price / 100),
                     quantity: oi.quantity,
                     image_url: itemImageUrl,
                   };
@@ -133,12 +125,10 @@ const SuccessPage: React.FC = () => {
                 return;
               } else {
                 console.error('Erro: orderItemsData não é um array. Dados recebidos:', orderItemsData);
-                // Continuar para o fallback da Edge Function
               }
             } else {
               const errorTextItems = await orderItemsResponse.text();
               console.error('Erro ao buscar itens do pedido (order_items):', orderItemsResponse.status, errorTextItems);
-              // Continuar para o fallback da Edge Function se os itens não puderem ser carregados
             }
           } else {
             console.log('Nenhum pedido encontrado na tabela orders com o session_id fornecido.');
@@ -161,16 +151,12 @@ const SuccessPage: React.FC = () => {
         setLoading(false);
         return;
       }
+
       console.log(`[Tentativa Edge Function ${retryCount + 1}] Buscando detalhes via Edge Function...`);
       try {
         const { data: sessionAuthData } = await supabase.auth.getSession();
         const authToken = sessionAuthData?.session?.access_token;
-        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        
-        if (!anonKey) {
-          console.error('VITE_SUPABASE_ANON_KEY não encontrada nas variáveis de ambiente');
-          throw new Error('Configuração do Supabase não encontrada');
-        }
+        const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzanp0bGVzdm9xYXF1dmlhc3hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0OTUyNTcsImV4cCI6MjA2NDA3MTI1N30.BZJh5goyZNvtCT9dCzm66sMjkzkm2dCsK6AZnlqC8R4';
         
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
@@ -179,11 +165,11 @@ const SuccessPage: React.FC = () => {
         };
 
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-session-details?session_id=${currentSessionId}`,
+          `https://esjztlesvoqaquviasxl.supabase.co/functions/v1/get-session-details?session_id=${currentSessionId}`,
           {
             method: 'GET',
             headers: headers,
-            signal: signal, // Usar o signal passado para a função
+            signal: signal,
           }
         );
 
@@ -221,13 +207,11 @@ const SuccessPage: React.FC = () => {
           let imageUrl = item.price?.product?.images?.[0] || '/placeholder.svg';
           
           try {
-              // Tentar buscar da tabela 'items' por nome do produto
-              // Simplificando o select para tentar mitigar o erro de instanciação profunda
               const { data: productData, error: productError } = await supabase
                   .from('items') 
-                  .select('id, nome, imagem_url, imagens') // Mantido por enquanto, mas monitorar se o erro de instanciação persiste
+                  .select('id, nome, imagem_url, imagens')
                   .eq('nome', item.description) 
-                  .maybeSingle<ProductDetails>(); // Adicionando tipo explícito
+                  .maybeSingle<ProductDetails>();
 
               if (productError && productError.code !== 'PGRST116') { 
                   console.warn('Erro ao buscar detalhes do produto no Supabase:', productError);
@@ -271,18 +255,18 @@ const SuccessPage: React.FC = () => {
 
         const nextDelay = Math.min(delay * 2, 30000);
 
-        if (retryCount < MAX_RETRIES - 1 && !signal.aborted) { // Usar signal aqui
+        if (retryCount < MAX_RETRIES - 1 && !signal.aborted) {
           console.log(`Tentando novamente em ${nextDelay / 1000}s... (Tentativa ${retryCount + 2})`);
           setTimeout(() => {
-            if (!signal.aborted) { // Usar signal aqui
-              doFetchOrderDetails(currentSessionId, signal, retryCount + 1, nextDelay); // Passar signal
+            if (!signal.aborted) {
+              doFetchOrderDetails(currentSessionId, signal, retryCount + 1, nextDelay);
             } else {
               console.log('Não tentando novamente, sinal já abortado antes do setTimeout callback.');
               setLoading(false);
             }
           }, nextDelay);
         } else {
-          if (signal.aborted) { // Usar signal aqui
+          if (signal.aborted) {
             console.log('Máximo de tentativas atingido, mas sinal já abortado.');
           } else {
             console.error('Máximo de tentativas atingido. Falha ao carregar detalhes do pedido.');
@@ -293,11 +277,9 @@ const SuccessPage: React.FC = () => {
       }
     };
 
-
-
     if (sessionId) {
       console.log('useEffect disparado com sessionId:', sessionId);
-      doFetchOrderDetails(sessionId, componentSignal, 0); // Passar componentSignal
+      doFetchOrderDetails(sessionId, componentSignal, 0);
     } else {
       toast({
         title: 'Erro',
@@ -312,7 +294,6 @@ const SuccessPage: React.FC = () => {
       console.log('Limpando useEffect da SuccessPage: Abortando requisições pendentes.');
       abortController.abort();
     };
-  // Removido fetchOrderDetails das dependências pois está definido dentro do useEffect
   }, [sessionId, navigate, toast, clearCart]); 
 
   const formatCurrency = (value: number) => {
@@ -331,8 +312,6 @@ const SuccessPage: React.FC = () => {
       });
     }
   };
-
-
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-game-dark to-gray-900 text-white">
@@ -415,7 +394,6 @@ const SuccessPage: React.FC = () => {
                     <li>Seus itens serão adicionados à sua conta Dota 2 automaticamente.</li>
                     <li>Em caso de problemas, entre em contato com nosso suporte com o número do pedido.</li>
                   </ol>
-                  {/* Botão de tentar novamente removido por enquanto */}
                 </div>
               </>
             )}
