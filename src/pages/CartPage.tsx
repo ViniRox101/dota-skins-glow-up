@@ -1,22 +1,82 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingCart, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useCart } from '@/contexts/CartContext';
-
+import { supabase } from '@/integrations/supabase/client';
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
 
-  const handleCheckout = () => {
-    // Aqui você pode implementar sua própria lógica de checkout
-    // Por exemplo, redirecionar para uma página de checkout personalizada
-    // ou integrar com outro provedor de pagamento
-    alert('Funcionalidade de checkout será implementada em breve!');
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) {
+      toast({
+        title: "Carrinho vazio",
+        description: "Adicione alguns itens ao carrinho antes de finalizar a compra.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessingCheckout(true);
+
+    try {
+      console.log('Iniciando processo de checkout com itens:', cartItems);
+
+      // Preparar os itens para o checkout
+      const checkoutItems = cartItems.map(item => ({
+        product_id: item.id,
+        name: item.nome,
+        price: item.desconto_porcentagem 
+          ? item.preco * (1 - item.desconto_porcentagem / 100) 
+          : item.preco,
+        quantity: item.quantidade,
+        image: item.imagem
+      }));
+
+      console.log('Itens preparados para checkout:', checkoutItems);
+
+      // Chamar a edge function do Stripe
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          items: checkoutItems,
+          success_url: `${window.location.origin}/success`,
+          cancel_url: `${window.location.origin}/cancel`
+        }
+      });
+
+      if (error) {
+        console.error('Erro ao criar sessão de checkout:', error);
+        throw error;
+      }
+
+      if (!data?.url) {
+        throw new Error('URL de checkout não recebida');
+      }
+
+      console.log('Redirecionando para o Stripe Checkout:', data.url);
+
+      // Redirecionar para o Stripe Checkout
+      window.location.href = data.url;
+
+    } catch (error) {
+      console.error('Erro no checkout:', error);
+      toast({
+        title: "Erro no checkout",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao processar o pagamento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingCheckout(false);
+    }
   };
 
   return (
@@ -110,6 +170,7 @@ const CartPage: React.FC = () => {
                   variant="outline" 
                   className="text-red-500 border-red-500 hover:bg-red-500/10"
                   onClick={clearCart}
+                  disabled={isProcessingCheckout}
                 >
                   Limpar Carrinho
                 </Button>
@@ -131,14 +192,30 @@ const CartPage: React.FC = () => {
                       <span className="text-neon-green">Total</span>
                       <span className="text-neon-green">R$ {getCartTotal().toFixed(2)}</span>
                     </div>
+                    <div className="text-sm text-gray-400 mt-4">
+                      <p>• Pagamento seguro via Stripe</p>
+                      <p>• Redução automática do estoque</p>
+                      <p>• Entrega instantânea dos itens</p>
+                    </div>
                   </div>
                 </CardContent>
                 <CardFooter>
                   <Button 
                     onClick={handleCheckout}
-                    className="w-full bg-neon-green text-game-dark hover:bg-neon-green/90"
+                    disabled={isProcessingCheckout || cartItems.length === 0}
+                    className="w-full bg-neon-green text-game-dark hover:bg-neon-green/90 disabled:opacity-50"
                   >
-                    Finalizar Compra
+                    {isProcessingCheckout ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-game-dark mr-2"></div>
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Finalizar Compra
+                      </>
+                    )}
                   </Button>
                 </CardFooter>
               </Card>
