@@ -50,10 +50,17 @@ const SuccessPage: React.FC = () => {
         console.log(`[Tentativa Tabela Orders ${retryCount + 1}] Buscando pedido da tabela orders...`);
         const { data: sessionAuthData } = await supabase.auth.getSession();
         const authToken = sessionAuthData?.session?.access_token;
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
+        if (!anonKey) {
+          console.error('VITE_SUPABASE_ANON_KEY não encontrada nas variáveis de ambiente');
+          throw new Error('Configuração do Supabase não encontrada');
+        }
+        
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': anonKey,
+          'Authorization': `Bearer ${authToken || anonKey}`,
         };
 
         // Etapa 1: Buscar o pedido principal
@@ -158,10 +165,17 @@ const SuccessPage: React.FC = () => {
       try {
         const { data: sessionAuthData } = await supabase.auth.getSession();
         const authToken = sessionAuthData?.session?.access_token;
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
+        if (!anonKey) {
+          console.error('VITE_SUPABASE_ANON_KEY não encontrada nas variáveis de ambiente');
+          throw new Error('Configuração do Supabase não encontrada');
+        }
+        
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': anonKey,
+          'Authorization': `Bearer ${authToken || anonKey}`,
         };
 
         const response = await fetch(
@@ -207,12 +221,12 @@ const SuccessPage: React.FC = () => {
           let imageUrl = item.price?.product?.images?.[0] || '/placeholder.svg';
           
           try {
-              // Tentar buscar da tabela 'items'
+              // Tentar buscar da tabela 'items' por nome do produto
               // Simplificando o select para tentar mitigar o erro de instanciação profunda
               const { data: productData, error: productError } = await supabase
                   .from('items') 
                   .select('id, nome, imagem_url, imagens') // Mantido por enquanto, mas monitorar se o erro de instanciação persiste
-                  .eq('stripe_product_id', item.price?.product?.id) 
+                  .eq('nome', item.description) 
                   .maybeSingle<ProductDetails>(); // Adicionando tipo explícito
 
               if (productError && productError.code !== 'PGRST116') { 
