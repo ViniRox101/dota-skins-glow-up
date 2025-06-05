@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { Home, Package, Package2, ShoppingCart, Users, LineChart, List, PlusCircle, Tag, MessageSquare, Settings, User } from "lucide-react";
+import { Home, Package, Package2, ShoppingCart, Users, LineChart, List, PlusCircle, Tag, MessageSquare, Settings, User, Activity } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import Dashboard from './Dashboard';
 import ManageProducts from './ManageProducts';
@@ -64,6 +64,7 @@ const AdminDashboard: React.FC = () => {
                 <span>Sorteio</span>
               </Link>
             </li>
+
 
           </ul>
         </nav>

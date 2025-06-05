@@ -17,12 +17,12 @@ const FAQ: React.FC = () => {
         <div className="max-w-4xl mx-auto text-left space-y-8">
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold text-purple-400 mb-2">➡ Como posso comprar os itens do Dotaplay?</h2>
-            <p className="text-lg text-gray-300 leading-relaxed">Ao clicar no botão de comprar, você será direcionado para um dos administradores do canal, através do WhatsApp. Optamos por esse formato para garantir mais segurança, proximidade e um atendimento personalizado. Não temos interesse em usar sistemas automatizados ou lojas integradas — aqui, você fala direto com a gente!</p>
+            <p className="text-lg text-gray-300 leading-relaxed">Ao clicar no botão de comprar na página do carrinho, você será instruído a entrar em contato com um dos administradores do canal, geralmente via WhatsApp, para combinar o pagamento e a entrega. Optamos por esse formato atualmente para garantir mais segurança, proximidade e um atendimento personalizado. Aqui, você fala direto com a gente!</p>
           </div>
 
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold text-purple-400 mb-2">➡ Por que não há uma opção de pagamento direto pelo site?</h2>
-            <p className="text-lg text-gray-300 leading-relaxed">Escolhemos não usar sistemas automáticos de pagamento porque queremos manter um processo mais seguro e próximo da nossa comunidade. Todas as transações são feitas diretamente com um administrador, garantindo que cada negociação seja acompanhada de perto e realizada com total confiança.</p>
+            <p className="text-lg text-gray-300 leading-relaxed">Atualmente, optamos por não utilizar sistemas de pagamento automatizados diretamente no site para manter um processo mais seguro e próximo da nossa comunidade. Todas as transações são combinadas e realizadas diretamente com um administrador, garantindo que cada negociação seja acompanhada de perto e com total confiança.</p>
           </div>
 
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
