@@ -25,8 +25,8 @@ import ManageRarities from "./pages/ManageRarities";
 import About from "./pages/About";
 import FAQ from "./pages/FAQ";
 import Giveaway from "./pages/Giveaway";
-import Success from "./pages/success";
 import Cancel from "./pages/cancel";
+
 import { CartProvider } from "./contexts/CartContext";
 
 const queryClient = new QueryClient();
@@ -46,7 +46,6 @@ const App = () => (
           <Route path="/products/:productName" element={<ProductPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/success" element={<Success />} />
           <Route path="/cancel" element={<Cancel />} />
           <Route path="/cart" element={<CartPage />} />
           
@@ -66,6 +65,7 @@ const App = () => (
               <Route path="manage-rarities" element={<ManageRarities />} />
               <Route path="manage-products" element={<ManageProducts />} />
               <Route path="giveaway" element={<Giveaway />} />
+
             </Route>
           </Route>
           

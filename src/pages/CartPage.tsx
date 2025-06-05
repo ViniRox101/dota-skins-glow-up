@@ -1,22 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingCart, Mail, Loader2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useCart } from '@/contexts/CartContext';
 
 
+
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart(); // proceedToCheckout, validação de email e isCheckingOut removidos
 
-  const handleCheckout = () => {
-    // Aqui você pode implementar sua própria lógica de checkout
-    // Por exemplo, redirecionar para uma página de checkout personalizada
-    // ou integrar com outro provedor de pagamento
-    alert('Funcionalidade de checkout será implementada em breve!');
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) {
+      // Idealmente, usar um toast aqui, mas alert para simplificar se toast não estiver configurado globalmente
+      alert("Seu carrinho está vazio. Adicione itens antes de prosseguir.");
+      return;
+    }
+
+    // Lógica de checkout super simplificada agora que não há integração de pagamento.
+    // Apenas um log e um alerta para indicar a ação.
+    console.log('Botão Finalizar Compra clicado. Itens no carrinho:', cartItems);
+    console.log('Total do carrinho:', getCartTotal());
+    alert('Processo de finalização de compra iniciado! Por favor, entre em contato para combinar o pagamento e entrega.');
+    // Poderia limpar o carrinho aqui, se desejado, após o usuário ser instruído a entrar em contato.
+    // clearCart(); 
   };
 
   return (
@@ -131,14 +143,24 @@ const CartPage: React.FC = () => {
                       <span className="text-neon-green">Total</span>
                       <span className="text-neon-green">R$ {getCartTotal().toFixed(2)}</span>
                     </div>
+                    
+                    {/* Campo de Email removido */}
                   </div>
                 </CardContent>
                 <CardFooter>
                   <Button 
+                    className="w-full bg-neon-green text-game-dark hover:bg-neon-green/90 font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center group"
                     onClick={handleCheckout}
-                    className="w-full bg-neon-green text-game-dark hover:bg-neon-green/90"
+                    disabled={cartItems.length === 0} // Desabilitar apenas se o carrinho estiver vazio
                   >
-                    Finalizar Compra
+                    {false ? ( // Removida a dependência de isCheckingOut, loader não será exibido por padrão aqui, pode ser um estado local se necessário no futuro.
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      'Finalizar Compra'
+                    )}
                   </Button>
                 </CardFooter>
               </Card>
