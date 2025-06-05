@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingCart, CreditCard } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '@/components/Header';
@@ -119,7 +119,6 @@ const CartPage: React.FC = () => {
                   variant="outline" 
                   className="text-red-500 border-red-500 hover:bg-red-500/10"
                   onClick={clearCart}
-                  disabled={isProcessingCheckout}
                 >
                   Limpar Carrinho
                 </Button>
@@ -141,16 +140,7 @@ const CartPage: React.FC = () => {
                       <span className="text-neon-green">Total</span>
                       <span className="text-neon-green">R$ {getCartTotal().toFixed(2)}</span>
                     </div>
-<<<<<<< HEAD
-                    
-                    {/* Campo de Email removido */}
-=======
-                    <div className="text-sm text-gray-400 mt-4">
-                      <p>• Pagamento seguro via Stripe</p>
-                      <p>• Redução automática do estoque</p>
-                      <p>• Entrega instantânea dos itens</p>
-                    </div>
->>>>>>> 41e09ee9dcbc270b529b8fb5a2f7e5ab374a41a6
+
                   </div>
                 </CardContent>
                 <CardFooter>
@@ -159,7 +149,6 @@ const CartPage: React.FC = () => {
                     onClick={handleCheckout}
                     disabled={cartItems.length === 0}
                   >
-                    <CreditCard className="mr-2 h-4 w-4" />
                     Finalizar Compra
                   </Button>
                 </CardFooter>
