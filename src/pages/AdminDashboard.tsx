@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { Home, Package, Package2, ShoppingCart, Users, LineChart, List, PlusCircle, Tag, MessageSquare, Settings, User, Activity } from "lucide-react";
+import { Home, Package, Package2, ShoppingCart, Users, LineChart, List, PlusCircle, Tag, MessageSquare, Settings, User, Activity, DollarSign, Gift } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import Dashboard from './Dashboard';
 import ManageProducts from './ManageProducts';
@@ -53,14 +53,27 @@ const AdminDashboard: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link to="/admin/manage-products" className="flex items-center p-2 text-gray-300 hover:bg-neon-green/20 rounded-md transition-colors duration-200">
-                <Package className="mr-3 h-5 w-5" />
-                Produtos
+              <Link
+                to="/admin/manage-products"
+                className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-neon-green hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <Package className="h-5 w-5" />
+                <span>Produtos</span>
               </Link>
-            </li>
-            <li>
-              <Link to="/admin/giveaway" className="flex items-center space-x-3 p-2 rounded-md text-gray-300 hover:bg-neon-green/20 hover:text-neon-green transition-colors duration-200">
-                <List className="h-5 w-5" />
+              
+              <Link
+                to="/admin/sales"
+                className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-neon-green hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <DollarSign className="h-5 w-5" />
+                <span>Vendas</span>
+              </Link>
+              
+              <Link
+                to="/admin/giveaway"
+                className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-neon-green hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <Gift className="h-5 w-5" />
                 <span>Sorteio</span>
               </Link>
             </li>

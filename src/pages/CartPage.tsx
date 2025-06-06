@@ -1,31 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingCart, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useCart } from '@/contexts/CartContext';
-import { supabase } from '@/integrations/supabase/client';
+import { paymentService } from '@/services/paymentService';
+import { toast } from 'sonner';
+
 
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
 
+  // ⚠️ CRÍTICO: NÃO REMOVER ESTA FUNÇÃO - É O CORAÇÃO DO CHECKOUT
+  // Esta função é responsável por processar o checkout do Stripe
+  // Qualquer alteração aqui pode quebrar todo o fluxo de pagamento
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
-      alert("Seu carrinho está vazio. Adicione itens antes de prosseguir.");
+      toast.error('Seu carrinho está vazio!');
       return;
     }
 
-    // Lógica de checkout super simplificada agora que não há integração de pagamento.
-    // Apenas um log e um alerta para indicar a ação.
-    console.log('Botão Finalizar Compra clicado. Itens no carrinho:', cartItems);
-    console.log('Total do carrinho:', getCartTotal());
-    alert('Processo de finalização de compra iniciado! Por favor, entre em contato para combinar o pagamento e entrega.');
-    // Poderia limpar o carrinho aqui, se desejado, após o usuário ser instruído a entrar em contato.
-    // clearCart();
+    setIsProcessingCheckout(true);
+    
+    try {
+      console.log('🛒 Iniciando checkout com itens:', cartItems);
+      
+      // ⚠️ CRÍTICO: Esta chamada inicia o processo de pagamento no Stripe
+      const result = await paymentService.createPaymentPreference(cartItems);
+      
+      if (result.success) {
+        toast.success('Redirecionando para o pagamento...');
+        // O redirecionamento para o Stripe acontece automaticamente no paymentService
+      } else {
+        toast.error(`Erro no checkout: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Erro no checkout:', error);
+      toast.error('Erro inesperado no checkout. Tente novamente.');
+    } finally {
+      setIsProcessingCheckout(false);
+    }
   };
 
   return (
@@ -140,16 +159,25 @@ const CartPage: React.FC = () => {
                       <span className="text-neon-green">Total</span>
                       <span className="text-neon-green">R$ {getCartTotal().toFixed(2)}</span>
                     </div>
-
                   </div>
                 </CardContent>
                 <CardFooter>
+                  {/* ⚠️ CRÍTICO: NÃO ALTERAR ESTE BOTÃO - É O BOTÃO PRINCIPAL DE CHECKOUT */}
+                  {/* Este botão chama a função handleCheckout que processa o pagamento no Stripe */}
+                  {/* Qualquer alteração no onClick ou disabled pode quebrar o fluxo de pagamento */}
                   <Button 
-                    className="w-full bg-neon-green text-game-dark hover:bg-neon-green/90 font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center group"
-                    onClick={handleCheckout}
-                    disabled={cartItems.length === 0}
+                    className="w-full bg-neon-green text-game-dark hover:bg-neon-green/90 font-semibold py-3"
+                    onClick={handleCheckout} // ⚠️ CRÍTICO: NÃO ALTERAR - Função principal do checkout
+                    disabled={isProcessingCheckout || cartItems.length === 0} // ⚠️ CRÍTICO: Validações necessárias
                   >
-                    Finalizar Compra
+                    {isProcessingCheckout ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      'Finalizar Compra' // ⚠️ CRÍTICO: NÃO ALTERAR ESTE TEXTO
+                    )}
                   </Button>
                 </CardFooter>
               </Card>

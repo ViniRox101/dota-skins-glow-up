@@ -78,7 +78,8 @@ const ProductPage = () => {
       try {
         console.log('Searching for product:', productName);
         
-        const { data, error } = await supabase
+        // Primeiro tenta busca exata
+        let { data, error } = await supabase
           .from('items')
           .select(`
             *,
@@ -90,6 +91,27 @@ const ProductPage = () => {
           `)
           .ilike('nome', productName)
           .single();
+
+        // Se não encontrar, tenta busca mais flexível removendo espaços e hífens
+        if (error && error.code === 'PGRST116') {
+          const normalizedName = productName?.replace(/[-\s]/g, '');
+          const { data: flexibleData, error: flexibleError } = await supabase
+            .from('items')
+            .select(`
+              *,
+              desconto_porcentagem,
+              categorias!items_categoria_id_fkey(nome),
+              raridades!items_raridade_id_fkey(nome),
+              herois!items_heroi_id_fkey(nome),
+              partes_equipaveis!items_parte_equipavel_id_fkey(nome)
+            `)
+            .ilike('nome', `%${normalizedName?.split('').join('%')}%`)
+            .limit(1)
+            .single();
+          
+          data = flexibleData;
+          error = flexibleError;
+        }
 
         console.log('Supabase data:', data);
         console.log('Supabase error:', error);

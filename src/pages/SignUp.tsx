@@ -10,6 +10,7 @@ const SignUp: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [steamId, setSteamId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const SignUp: React.FC = () => {
     e.preventDefault();
     
     // Validações básicas
-    if (!email || !password || !fullName) {
+    if (!email || !password || !fullName || !steamId) {
       setError('Por favor, preencha todos os campos');
       return;
     }
@@ -32,7 +33,7 @@ const SignUp: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Iniciando registro com:', { email, fullName });
+      console.log('Iniciando registro com:', { email, fullName, steamId });
       
       // Registra o usuário com email e senha
       const { data, error: signUpError } = await supabase.auth.signUp({
@@ -40,7 +41,8 @@ const SignUp: React.FC = () => {
         password,
         options: {
           data: {
-            full_name: fullName
+            full_name: fullName,
+            steam_id: steamId
           },
           emailRedirectTo: window.location.origin + '/login'
         }
@@ -55,6 +57,8 @@ const SignUp: React.FC = () => {
       
       // Verifica se o usuário foi criado com sucesso
       if (data && data.user) {
+        console.log('Usuário criado com sucesso, perfil será criado automaticamente via trigger');
+        
         // Redireciona para a página de login após o registro
         navigate('/login', { 
           state: { 
@@ -101,6 +105,18 @@ const SignUp: React.FC = () => {
                 placeholder="m@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1 block w-full bg-gray-800 border-gray-700 text-white focus:border-neon-green"
+              />
+            </div>
+            <div>
+              <label htmlFor="steamId" className="block text-sm font-medium text-gray-300">ID Dota ou ID Steam</label>
+              <Input
+                id="steamId"
+                type="text"
+                placeholder="76561198262445629 ou URL do perfil Steam"
+                value={steamId}
+                onChange={(e) => setSteamId(e.target.value)}
                 required
                 className="mt-1 block w-full bg-gray-800 border-gray-700 text-white focus:border-neon-green"
               />

@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { products as allProducts, Product as ProductType } from '../data/products'; // Importar produtos e o tipo Product
 import { toast } from '@/components/ui/use-toast'; // Importar o toast
 
-
 interface CartProduct {
   id: string;
   nome: string;
@@ -21,8 +20,6 @@ interface CartContextType {
   updateQuantity: (productId: string, quantity: number) => void;
   getCartTotal: () => number;
   getCartCount: () => number;
-  // isCheckingOut e proceedToCheckout foram removidos.
-  // A lógica de checkout agora é tratada diretamente no CartPage.tsx.
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -44,7 +41,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     const savedCart = localStorage.getItem('cart');
     return savedCart ? JSON.parse(savedCart) : [];
   });
-  // const [isCheckingOut, setIsCheckingOut] = useState(false); // Removido
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
@@ -149,9 +145,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return cartItems.reduce((count, item) => count + item.quantidade, 0);
   }, [cartItems]);
 
-  // A função proceedToCheckout e o estado isCheckingOut foram removidos.
-  // A lógica de checkout agora é tratada diretamente no CartPage.tsx.
-
   const value = {
     cartItems,
     addToCart,
@@ -160,7 +153,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     updateQuantity,
     getCartTotal,
     getCartCount,
-    // isCheckingOut removido
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
