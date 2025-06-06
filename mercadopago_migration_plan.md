@@ -61,12 +61,12 @@
 #### 1.1 Configuração Inicial
 - [ ] Criar conta Mercado Pago Developers ⚠️ **AÇÃO EXTERNA NECESSÁRIA**
 - [ ] Obter credenciais (Access Token, Public Key) ⚠️ **AÇÃO EXTERNA NECESSÁRIA**
-- [ ] Instalar SDK do Mercado Pago
-- [ ] Configurar variáveis de ambiente
+- [x] Instalar SDK do Mercado Pago
+- [x] Configurar variáveis de ambiente
 
 #### 1.2 Backup de Segurança
-- [ ] Commit atual: `git commit -m "Backup antes da migração MP"`
-- [ ] Criar branch: `git checkout -b feature/mercadopago-migration`
+- [x] Commit atual: `git commit -m "Backup antes da migração MP"`
+- [x] Criar branch: `git checkout -b feature/mercadopago-migration`
 
 ### **FASE 2: Implementação Backend (45 min)**
 
@@ -233,11 +233,30 @@ SUPABASE_SERVICE_ROLE_KEY=...
 - [x] Plano de migração criado
 - [x] Documentação oficial consultada e atualizada
 - [x] SDKs identificados (@mercadopago/sdk-react + mercadopago)
+- [x] **FASE 1: Preparação** ✅
+  - [x] Backup de segurança (commit + branch)
+  - [x] Remoção das dependências Stripe
+  - [x] Instalação do SDK Mercado Pago
+  - [x] Configuração das variáveis de ambiente
+  - [x] Adicionar credenciais do Mercado Pago no .env
+  - [x] Criar webhook no painel do Mercado Pago
 
-### 🚀 Em Andamento
-- [ ] FASE 1: Preparação
+### ✅ Fase 1 Concluída (2025-01-31)
+**Tarefas realizadas:**
+- Backup criado com commit de segurança
+- Dependências Stripe removidas: `@stripe/react-stripe-js`, `@stripe/stripe-js`, `stripe`
+- SDK Mercado Pago instalado: `mercadopago` (backend), `@mercadopago/sdk-react` (frontend já estava)
+- Arquivo `.env` atualizado com placeholders para credenciais Mercado Pago
+- Variáveis Stripe comentadas para preservar configuração
+- **Credenciais do Mercado Pago configuradas no arquivo .env**
+- **Webhook criado no painel do Mercado Pago**: `https://esjztlesvoqaquviasxl.supabase.co/functions/v1/mercadopago-webhook`
+
+### 🔄 Fase 2 em Andamento
+**Próximos passos:**
+- Iniciar implementação backend (Supabase Functions)
+- Criar função `mercadopago-webhook`
+- Implementar `create-payment-preference`
 
 ### ⏳ Pendente
-- [ ] FASE 2: Backend
 - [ ] FASE 3: Frontend  
 - [ ] FASE 4: Testes

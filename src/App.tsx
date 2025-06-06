@@ -30,7 +30,6 @@ import Success from "./pages/Success";
 import SalesDashboard from "./pages/SalesDashboard";
 
 import { CartProvider } from "./contexts/CartContext";
-import StripeProvider from "./components/StripeProvider";
 
 const queryClient = new QueryClient();
 
@@ -39,8 +38,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <StripeProvider>
-        <CartProvider>
+      <CartProvider>
           <BrowserRouter>
           <Routes>
           <Route path="/" element={<Index />} />
@@ -79,8 +77,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
           </Routes>
           </BrowserRouter>
-        </CartProvider>
-      </StripeProvider>
+      </CartProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
